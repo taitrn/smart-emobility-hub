@@ -1,5 +1,5 @@
 // Smoke against this branch's scaffold, never a production/reset script.
-// No cookies or credentials are sent. Business operations must remain blocked.
+// No cookies or credentials are sent. Unauthenticated mutations must be rejected.
 import assert from "node:assert/strict";
 
 const base = new URL(process.argv[2] ?? "http://127.0.0.1:3000");
@@ -26,16 +26,20 @@ const cases = [
 ];
 
 for (const [method, path, input, expected] of cases) {
+  const protectedPath = !path.startsWith("/api/health") && !path.startsWith("/api/hubs");
+  const expectedStatus = expected === 501 && protectedPath ? (process.env.AUTH_CONFIGURED === "1" ? 401 : 503) : expected;
   const response = await fetch(new URL(path, base), {
     method, redirect: "error", signal: AbortSignal.timeout(10_000),
     ...(input ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) } : {}),
   });
   const json = await response.json();
-  assert.equal(response.status, expected, `${method} ${path}`);
+  assert.equal(response.status, expectedStatus, `${method} ${path}`);
   assert.equal(json.ok, expected === 200);
   assert.match(json.requestId, /^[0-9a-f-]{36}$/i);
-  assert.equal(response.headers.get("cache-control"), "no-store");
-  if (expected === 501) assert.equal(json.error.code, "NOT_IMPLEMENTED");
+  assert.match(response.headers.get("cache-control") ?? "", /(?:^|,\s*)no-store(?:,|$)/);
+  if (expectedStatus === 501) assert.equal(json.error.code, "NOT_IMPLEMENTED");
+  if (expectedStatus === 401) assert.equal(json.error.code, "UNAUTHENTICATED");
+  if (expectedStatus === 503) assert.equal(json.error.code, "DATABASE_UNAVAILABLE");
   if (expected === 400) assert.equal(json.error.code, "INVALID_INPUT");
   if (input && expected === 501) assert.equal(json.requestId, input.requestId);
   console.log(`PASS ${response.status} ${method} ${path}`);
@@ -47,4 +51,4 @@ const malformed = await fetch(new URL("/api/vehicle-reservations", base), {
 assert.equal(malformed.status, 400);
 assert.equal((await malformed.json()).error.code, "INVALID_INPUT");
 console.log("PASS 400 malformed JSON");
-console.log("Scaffold smoke passed. Auth/DB/use cases remain unimplemented.");
+console.log("Scaffold smoke passed. Protected requests were rejected; feature services remain stubs.");
