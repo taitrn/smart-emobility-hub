@@ -1,0 +1,28 @@
+# Application/build output
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Local configuration and credentials
+.env*
+!.env.example
+.vercel/
+*.pem
+*.key
+*.p12
+*.pfx
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Local planning conversations and QA artifacts (keep on disk)
+.agents/
+PROJECT_OVERVIEW.md
+pixi.toml
+pixi.lock
+.pixi/
+output/
+.playwright-cli/

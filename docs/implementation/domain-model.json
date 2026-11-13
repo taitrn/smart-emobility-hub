@@ -1,0 +1,622 @@
+{
+  "version": "1.0",
+  "classes": [
+    {
+      "name": "User",
+      "table": "app_users",
+      "attributes": [
+        "id: UUID",
+        "role: Role",
+        "active: boolean",
+        "bookingBlockedUntil: Instant?"
+      ],
+      "methods": [
+        {
+          "signature": "isBookingBlocked(now): boolean",
+          "description": "Trả true nếu inactive hoặc now < bookingBlockedUntil. Kiểm tra trước khi tạo booking.",
+          "implementation": "lib/domain/user-rules.ts"
+        },
+        {
+          "signature": "registerNoShow(kind, reservationId, now): void",
+          "description": "Trong transaction, ghi một NoShowRecord nếu hợp lệ và duy nhất. Đếm bảy ngày, khóa tạo booking mới 24 giờ ở vi phạm thứ ba.",
+          "implementation": "reservations / expire_reservations RPC"
+        }
+      ]
+    },
+    {
+      "name": "Hub",
+      "table": "mobility_hubs",
+      "attributes": [
+        "id: UUID",
+        "code: string",
+        "status: HubStatus",
+        "ratedPowerKw: number"
+      ],
+      "methods": [
+        {
+          "signature": "availability(interval?): HubAvailability",
+          "description": "Tổng hợp xe đủ thuê, FLEET trống hiện tại, PRIVATE theo lịch và cổng hoạt động. Có timestamp.",
+          "implementation": "features/hubs/service.ts"
+        },
+        {
+          "signature": "hasCapacityFor(count): boolean",
+          "description": "Đếm FLEET bật, FREE và không có claim trả xe chưa giải quyết. count phải dương.",
+          "implementation": "hubs / SQL read helper"
+        },
+        {
+          "signature": "isImbalanced(now): boolean",
+          "description": "Occupancy ≥95% hoặc tỷ lệ xe khả dụng <10% liên tục hơn 5 phút. Cảnh báo cần deduplicate.",
+          "implementation": "features/operations/service.ts"
+        },
+        {
+          "signature": "setMaintenance(on): void",
+          "description": "Operator scope thay đổi bảo trì. Chặn booking mới, giữ quyền hoàn tất trip khi còn vị trí trả an toàn. Ghi event.",
+          "implementation": "operations / update_hub_status RPC"
+        }
+      ]
+    },
+    {
+      "name": "SharedVehicle",
+      "table": "shared_vehicles",
+      "attributes": [
+        "id: UUID",
+        "hubId: UUID",
+        "slotId: UUID?",
+        "batteryPercent: number",
+        "status: VehicleStatus",
+        "enabled: boolean"
+      ],
+      "methods": [
+        {
+          "signature": "isRentable(now): boolean",
+          "description": "Đánh giá enabled, Hub, pin, trạng thái, hold/trip và sự cố. WAITING_CHARGE chưa được cho thuê.",
+          "implementation": "lib/domain/vehicle-rules.ts"
+        },
+        {
+          "signature": "setEnabled(enabled): void",
+          "description": "Operator scope bật/tắt việc phục vụ mới, không làm mất xe đang đi hoặc occupancy.",
+          "implementation": "operations / update_device RPC"
+        },
+        {
+          "signature": "markOutOfService(reason): void",
+          "description": "Cách ly xe, ghi lý do và xử lý booking bị ảnh hưởng mà không tính phạt sai.",
+          "implementation": "operations / report_incident RPC"
+        },
+        {
+          "signature": "restore(): void",
+          "description": "Xác nhận không còn incident mở, Hub/vị trí hợp lệ. Chọn AVAILABLE hoặc WAITING_CHARGE theo pin.",
+          "implementation": "operations / resolve_incident RPC"
+        }
+      ]
+    },
+    {
+      "name": "PrivateVehicle",
+      "table": "private_vehicles",
+      "attributes": [
+        "id: UUID",
+        "ownerId: UUID",
+        "plateNumber: string",
+        "batteryPercent: number",
+        "connector: string"
+      ],
+      "methods": [
+        {
+          "signature": "isOwnedBy(userId): boolean",
+          "description": "So ownerId với user đã xác thực trước khi đặt PRIVATE hoặc gửi yêu cầu sạc.",
+          "implementation": "lib/domain/ownership.ts"
+        }
+      ]
+    },
+    {
+      "name": "ParkingSpace",
+      "table": "parking_spaces",
+      "attributes": [
+        "id: UUID",
+        "hubId: UUID",
+        "spaceKind: FLEET | PRIVATE",
+        "occupancyStatus: FREE | OCCUPIED",
+        "enabled: boolean"
+      ],
+      "methods": [
+        {
+          "signature": "isFreeDuring(start, end): boolean",
+          "description": "PRIVATE hoạt động, khoảng giờ hợp lệ, không trùng lịch hiệu lực. Occupancy hiện tại được xét riêng khi check-in.",
+          "implementation": "reservations / parking availability query"
+        },
+        {
+          "signature": "park(vehicleId): void",
+          "description": "Chỉ command nhận/trả hoặc sự kiện arrival hợp lệ được ghi OCCUPIED. Kiểm tra đúng loại slot và không chứa xe khác.",
+          "implementation": "rental/parking ACK RPC"
+        },
+        {
+          "signature": "vacate(): void",
+          "description": "Xác nhận đúng xe đã rời rồi ghi FREE trong cùng transaction với Trip/ParkingReservation.",
+          "implementation": "rental/parking event RPC"
+        }
+      ]
+    },
+    {
+      "name": "ChargingPoint",
+      "table": "charging_points",
+      "attributes": [
+        "id: UUID",
+        "hubId: UUID",
+        "connector: string",
+        "ratedPowerKw: number",
+        "status: PointStatus",
+        "enabled: boolean"
+      ],
+      "methods": [
+        {
+          "signature": "accepts(connector): boolean",
+          "description": "Cổng bật, phù hợp đầu sạc và không lỗi. Việc cấp cổng còn kiểm tra phiên/công suất.",
+          "implementation": "features/charging/rules.ts"
+        },
+        {
+          "signature": "markFaulty(reason): void",
+          "description": "Lưu OUT_OF_SERVICE, tạo incident và xử lý phiên ảnh hưởng bằng tín hiệu giả lập.",
+          "implementation": "operations / report_incident RPC"
+        },
+        {
+          "signature": "restore(): void",
+          "description": "Khôi phục khi hết incident mở và đã xác minh an toàn; chưa tự cấp cổng nếu điều kiện không hợp lệ.",
+          "implementation": "operations / resolve_incident RPC"
+        },
+        {
+          "signature": "setEnabled(enabled): void",
+          "description": "Operator scope bật/tắt phục vụ mới và ghi audit. Không tự biến phiên đang chạy thành hoàn tất.",
+          "implementation": "operations / update_device RPC"
+        }
+      ]
+    },
+    {
+      "name": "VehicleReservation",
+      "table": "vehicle_reservations",
+      "attributes": [
+        "id: UUID",
+        "userId: UUID",
+        "vehicleId: UUID",
+        "status: VehicleReservationStatus",
+        "confirmedAt: Instant",
+        "holdExpiresAt: Instant"
+      ],
+      "methods": [
+        {
+          "signature": "create(vehicleId, requestId): VehicleReservation",
+          "description": "Xác thực Student, lock tài nguyên và user, kiểm tra BR01/02, tạo ACTIVE_HOLD và receipt. Deadline bằng DB now+15 phút.",
+          "implementation": "reservations / reserve_vehicle RPC"
+        },
+        {
+          "signature": "deadline(): Instant",
+          "description": "Trả holdExpiresAt đã lưu, không cộng lại từ giờ hẹn hoặc lúc reload UI.",
+          "implementation": "lib/domain/reservation-rules.ts"
+        },
+        {
+          "signature": "cancel(requestId): VehicleReservation",
+          "description": "Chủ lượt được hủy trước deadline nếu chưa có pickup pending. Giải phóng một lần, không tính no-show.",
+          "implementation": "reservations / cancel_vehicle_reservation RPC"
+        },
+        {
+          "signature": "expire(now): void",
+          "description": "Chỉ ACTIVE_HOLD đến hạn và không có pickup cần đối soát. EXPIRED, release và no-show hợp lệ cùng transaction.",
+          "implementation": "reservations / expire_reservations RPC"
+        }
+      ]
+    },
+    {
+      "name": "Trip",
+      "table": "trips",
+      "attributes": [
+        "id: UUID",
+        "userId: UUID",
+        "vehicleId: UUID",
+        "reservationId: UUID",
+        "status: ACTIVE | COMPLETED",
+        "startedAt: Instant"
+      ],
+      "methods": [
+        {
+          "signature": "pickup(reservationId, code, requestId): DeviceCommand",
+          "description": "Kiểm tra chủ/mã/hạn, ghi command. SUCCESS mới tạo Trip và FULFILLED, manual/unknown trả 202.",
+          "implementation": "features/rental/service.ts + request_pickup RPC"
+        },
+        {
+          "signature": "requestReturn(slotId, requestId): DeviceCommand",
+          "description": "Kiểm tra trip ACTIVE, owner, FLEET hoạt động và trống. Claim slot bằng command, gửi khóa mô phỏng.",
+          "implementation": "features/rental/service.ts + request_return RPC"
+        },
+        {
+          "signature": "finalize(commandId, ack, eventId): Trip",
+          "description": "ACK idempotent. Pickup SUCCESS tạo Trip; return SUCCESS hoàn tất Trip và cập nhật xe/chỗ. FAILURE/UNKNOWN giữ hành vi an toàn.",
+          "implementation": "rental / acknowledge_device_command RPC"
+        }
+      ]
+    },
+    {
+      "name": "ParkingReservation",
+      "table": "parking_reservations",
+      "attributes": [
+        "id: UUID",
+        "privateVehicleId: UUID",
+        "slotId: UUID",
+        "status: ParkingReservationStatus",
+        "scheduledStartAt: Instant",
+        "scheduledEndAt: Instant",
+        "checkinDeadlineAt: Instant"
+      ],
+      "methods": [
+        {
+          "signature": "create(vehicleId, slotId, start, end, requestId): ParkingReservation",
+          "description": "Kiểm tra owner, PRIVATE, start/end và ≥30 phút. Chặn overlap cả slot/xe. Insert CONFIRMED, không đổi occupancy.",
+          "implementation": "reservations / reserve_parking RPC"
+        },
+        {
+          "signature": "checkIn(eventId): void",
+          "description": "Operator simulator gửi ARRIVED. Kiểm tra start <= DB now < deadline, đúng xe/slot FREE. CHECKED_IN và OCCUPIED cùng transaction.",
+          "implementation": "reservations / record_parking_event RPC"
+        },
+        {
+          "signature": "complete(eventId): void",
+          "description": "Chỉ xác nhận xe đã rời, chuyển COMPLETED và slot FREE. Giữ bận nếu xe quá giờ chưa rời.",
+          "implementation": "reservations / record_parking_event RPC"
+        },
+        {
+          "signature": "cancel(requestId): ParkingReservation",
+          "description": "Chủ booking còn CONFIRMED trước deadline được hủy. Giải phóng lịch, không suy diễn occupancy.",
+          "implementation": "reservations / cancel_parking_reservation RPC"
+        },
+        {
+          "signature": "expire(now): void",
+          "description": "CONFIRMED đến deadline, chưa arrival hợp lệ thì NO_SHOW nếu lỗi người đặt. Không phạt do sự cố/chưa xác minh.",
+          "implementation": "reservations / expire_reservations RPC"
+        }
+      ]
+    },
+    {
+      "name": "DeviceCommand",
+      "table": "device_commands",
+      "attributes": [
+        "id: UUID",
+        "kind: PICKUP | RETURN",
+        "state: CommandState",
+        "vehicleId: UUID",
+        "requestedAt: Instant",
+        "ackEventId: UUID?"
+      ],
+      "methods": [
+        {
+          "signature": "create(kind, target, requestId): DeviceCommand",
+          "description": "Được command nghiệp vụ tạo sau kiểm tra. Unique trên thao tác/tài nguyên pending. Giữ kết quả cho retry.",
+          "implementation": "rental / request_pickup, request_return RPC"
+        },
+        {
+          "signature": "acknowledge(ack, eventId): void",
+          "description": "Chỉ simulator có quyền hoặc server auto-success. ACK đã dùng không xử lý lại. Chỉ SUCCESS mới finalize trạng thái.",
+          "implementation": "rental / acknowledge_device_command RPC"
+        },
+        {
+          "signature": "reconcile(verifiedAck, eventId): void",
+          "description": "Kết thúc PENDING_CONFIRMATION bằng xác nhận tin cậy. Tái sử dụng cùng command và transaction, không phát lệnh mới.",
+          "implementation": "rental / acknowledge_device_command RPC"
+        }
+      ]
+    },
+    {
+      "name": "ChargingSession",
+      "table": "charging_sessions",
+      "attributes": [
+        "id: UUID",
+        "vehicleId: UUID",
+        "pointId: UUID?",
+        "priority: HIGH | NORMAL | LOW",
+        "status: ChargingStatus"
+      ],
+      "methods": [
+        {
+          "signature": "request(vehicleId, hubId, connector, departureAt, requestId): ChargingSession",
+          "description": "Student gửi xe cá nhân của mình. Request hiện tại, tính priority và xếp WAITING; hệ thống có thể tạo yêu cầu cho fleet cần sạc.",
+          "implementation": "charging / request_charging RPC"
+        },
+        {
+          "signature": "computePriority(now): ChargingPriority",
+          "description": "HIGH cho fleet pin <20% hoặc điều phối gấp; LOW cho private pin ≥80% hoặc giờ lấy còn ≥4h; còn lại NORMAL, HIGH thắng khi giao nhau.",
+          "implementation": "features/charging/rules.ts"
+        },
+        {
+          "signature": "start(pointId): void",
+          "description": "Scheduler chọn theo priority, requestedAt rồi ID. Cổng phù hợp, chưa có phiên khác, không vượt giới hạn công suất.",
+          "implementation": "charging / tick_charging RPC"
+        },
+        {
+          "signature": "pause(): void",
+          "description": "Tải >85% dừng phiên ưu tiên thấp, giữ cổng cho phiên. Ghi PAUSED và tải mô phỏng.",
+          "implementation": "charging / tick_charging RPC"
+        },
+        {
+          "signature": "resume(): void",
+          "description": "Chỉ khi tải <80% và sau cấp lại vẫn không vượt 85%, điều kiện cổng hợp lệ.",
+          "implementation": "charging / tick_charging RPC"
+        },
+        {
+          "signature": "complete(): void",
+          "description": "Operator xác nhận mô phỏng đã xong. Hoàn tất phiên, release cổng và cập nhật xe nếu đủ điều kiện.",
+          "implementation": "charging / complete_charging RPC"
+        },
+        {
+          "signature": "cancel(): void",
+          "description": "Chủ yêu cầu khi WAITING được hủy; thao tác khác phải theo quyền vận hành và điều kiện thiết bị.",
+          "implementation": "charging / cancel_charging RPC"
+        },
+        {
+          "signature": "fail(incidentId): void",
+          "description": "Sự cố cổng chuyển FAILED khi đã xác minh, release an toàn và ghi event.",
+          "implementation": "charging / report_incident RPC"
+        },
+        {
+          "signature": "changePriority(priority): void",
+          "description": "Operator scope override mức ưu tiên, ghi lý do/thời điểm, re-sort hàng đợi; chưa kéo thả rank tùy ý.",
+          "implementation": "charging / change_charging_priority RPC"
+        }
+      ]
+    },
+    {
+      "name": "Incident",
+      "table": "incidents",
+      "attributes": [
+        "id: UUID",
+        "hubId: UUID",
+        "targetType: DeviceType",
+        "targetId: UUID",
+        "status: OPEN | RESOLVED"
+      ],
+      "methods": [
+        {
+          "signature": "open(target, description, requestId): Incident",
+          "description": "Student báo tài nguyên liên quan hoặc Operator scope. Ghi sự cố và trạng thái ảnh hưởng trong transaction.",
+          "implementation": "operations / report_incident RPC"
+        },
+        {
+          "signature": "recordProgress(note): void",
+          "description": "Operator scope bổ sung ghi chú ngắn trong event log. Không mở workflow ticket phức tạp.",
+          "implementation": "operations / update_incident RPC"
+        },
+        {
+          "signature": "close(resolution): void",
+          "description": "Operator scope ghi xử lý và RESOLVED. Chỉ restore thiết bị khi không còn incident mở và đủ điều kiện.",
+          "implementation": "operations / resolve_incident RPC"
+        }
+      ]
+    },
+    {
+      "name": "SimulationRun",
+      "table": "simulation_runs",
+      "attributes": [
+        "id: UUID",
+        "params: ScenarioInput",
+        "baseline: Snapshot",
+        "status: SimulationStatus",
+        "results: SimulationResult?",
+        "engineVersion: string"
+      ],
+      "methods": [
+        {
+          "signature": "create(params, requestId): SimulationRun",
+          "description": "Operator chọn Hub có quyền, validate giới hạn, server chụp snapshot bất biến, lưu PENDING và receipt.",
+          "implementation": "simulation / create_simulation_run RPC"
+        },
+        {
+          "signature": "start(): void",
+          "description": "Chuyển RUNNING một lần và tính rule-based với bước 5 phút, seed/thứ tự cố định trong bản sao.",
+          "implementation": "features/simulation/engine.ts"
+        },
+        {
+          "signature": "complete(results): void",
+          "description": "Lưu metrics/recommendations chỉ khi vẫn RUNNING, ghi duration và COMPLETED. Không ghi live resources.",
+          "implementation": "simulation / finalize_simulation_run RPC"
+        },
+        {
+          "signature": "fail(reason): void",
+          "description": "Ghi FAILED cho lỗi, timeout kỹ thuật hoặc run bị ngắt. Dữ liệu live giữ nguyên.",
+          "implementation": "simulation / finalize_simulation_run RPC"
+        },
+        {
+          "signature": "rank(): RankedResult[]",
+          "description": "Sắp các kết quả có sẵn theo unmetDemand, overloadMinutes, estimatedWaitMinutes. Một kết quả vẫn hợp lệ cho MVP.",
+          "implementation": "features/simulation/engine.ts"
+        },
+        {
+          "signature": "rerun(overrides, requestId): SimulationRun",
+          "description": "Tạo run mới có tham số đã sửa, có thể dùng baseline cũ khi còn đúng scope. Không ghi đè lịch sử.",
+          "implementation": "features/simulation/service.ts"
+        }
+      ]
+    },
+    {
+      "name": "Recommendation",
+      "table": "simulation_runs.recommendations",
+      "attributes": [
+        "key: string",
+        "kind: REBALANCE | CHARGING | REDIRECT",
+        "reason: string",
+        "payload: RecommendationPayload"
+      ],
+      "methods": [
+        {
+          "signature": "toDraft(requestId): OperationDraft",
+          "description": "Operator scope chọn recommendation của run COMPLETED, tạo DRAFT một lần. Chưa thay xe hoặc phiên sạc vận hành.",
+          "implementation": "simulation / create_operation_draft RPC"
+        }
+      ]
+    },
+    {
+      "name": "OperationDraft",
+      "table": "operation_drafts",
+      "attributes": [
+        "id: UUID",
+        "runId: UUID?",
+        "kind: DraftKind",
+        "payload: json",
+        "status: DRAFT | APPROVED | REJECTED"
+      ],
+      "methods": [
+        {
+          "signature": "createDraft(payload, requestId): OperationDraft",
+          "description": "Tạo từ khuyến nghị hoặc cảnh báo có dữ liệu đủ. Validate source/destination và ghi nguồn.",
+          "implementation": "operations / create_operation_draft RPC"
+        },
+        {
+          "signature": "review(decision, reason): void",
+          "description": "Operator trong scope nguồn/đích chuyển DRAFT thành APPROVED/REJECTED. Không chạy điều chuyển thật hoặc áp priority live.",
+          "implementation": "operations / review_operation_draft RPC"
+        }
+      ]
+    },
+    {
+      "name": "EventLogEntry",
+      "table": "event_logs",
+      "attributes": [
+        "id: UUID",
+        "actorId: UUID?",
+        "action: string",
+        "targetId: UUID",
+        "outcome: string",
+        "createdAt: Instant"
+      ],
+      "methods": [
+        {
+          "signature": "record(event): EventLogEntry",
+          "description": "Append-only cùng transaction thay đổi nghiệp vụ. Actor từ server. Không log pickup code, password hoặc token.",
+          "implementation": "shared SQL event helper"
+        }
+      ]
+    },
+    {
+      "name": "NoShowRecord",
+      "table": "no_show_records",
+      "attributes": [
+        "id: UUID",
+        "userId: UUID",
+        "reservationKind: VEHICLE | PARKING",
+        "reservationId: UUID",
+        "occurredAt: Instant"
+      ],
+      "methods": [
+        {
+          "signature": "create(kind, reservationId, userId, now): NoShowRecord",
+          "description": "Ghi duy nhất sau xác nhận lỗi người dùng. Unique kind+reservationId; retry trả record cũ.",
+          "implementation": "reservations / expiry SQL helper"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "source": "User",
+      "target": "VehicleReservation",
+      "sourceMultiplicity": "1",
+      "targetMultiplicity": "0..*"
+    },
+    {
+      "source": "User",
+      "target": "ParkingReservation",
+      "sourceMultiplicity": "1",
+      "targetMultiplicity": "0..*"
+    },
+    {
+      "source": "User",
+      "target": "PrivateVehicle",
+      "sourceMultiplicity": "1",
+      "targetMultiplicity": "0..*"
+    },
+    {
+      "source": "Hub",
+      "target": "ParkingSpace",
+      "sourceMultiplicity": "1",
+      "targetMultiplicity": "0..*"
+    },
+    {
+      "source": "Hub",
+      "target": "SharedVehicle",
+      "sourceMultiplicity": "1",
+      "targetMultiplicity": "0..*"
+    },
+    {
+      "source": "Hub",
+      "target": "ChargingPoint",
+      "sourceMultiplicity": "1",
+      "targetMultiplicity": "0..*"
+    },
+    {
+      "source": "VehicleReservation",
+      "target": "SharedVehicle",
+      "sourceMultiplicity": "0..*",
+      "targetMultiplicity": "1"
+    },
+    {
+      "source": "VehicleReservation",
+      "target": "Trip",
+      "sourceMultiplicity": "1",
+      "targetMultiplicity": "0..1"
+    },
+    {
+      "source": "Trip",
+      "target": "SharedVehicle",
+      "sourceMultiplicity": "0..*",
+      "targetMultiplicity": "1"
+    },
+    {
+      "source": "ParkingReservation",
+      "target": "PrivateVehicle",
+      "sourceMultiplicity": "0..*",
+      "targetMultiplicity": "1"
+    },
+    {
+      "source": "ParkingReservation",
+      "target": "ParkingSpace",
+      "sourceMultiplicity": "0..*",
+      "targetMultiplicity": "1"
+    },
+    {
+      "source": "DeviceCommand",
+      "target": "Trip",
+      "sourceMultiplicity": "0..*",
+      "targetMultiplicity": "0..1"
+    },
+    {
+      "source": "ChargingSession",
+      "target": "ChargingPoint",
+      "sourceMultiplicity": "0..*",
+      "targetMultiplicity": "0..1"
+    },
+    {
+      "source": "SimulationRun",
+      "target": "Recommendation",
+      "sourceMultiplicity": "1",
+      "targetMultiplicity": "0..*"
+    },
+    {
+      "source": "Recommendation",
+      "target": "OperationDraft",
+      "sourceMultiplicity": "1",
+      "targetMultiplicity": "0..1"
+    },
+    {
+      "source": "User",
+      "target": "NoShowRecord",
+      "sourceMultiplicity": "1",
+      "targetMultiplicity": "0..*"
+    },
+    {
+      "source": "Incident",
+      "target": "Hub",
+      "sourceMultiplicity": "0..*",
+      "targetMultiplicity": "1"
+    },
+    {
+      "source": "EventLogEntry",
+      "target": "User",
+      "sourceMultiplicity": "0..*",
+      "targetMultiplicity": "0..1"
+    }
+  ]
+}
