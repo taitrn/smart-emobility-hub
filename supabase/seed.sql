@@ -1,0 +1,27 @@
+-- Run after migration. Sample coordinates only. No passwords.
+begin;
+insert into public.mobility_hubs(id,code,name,latitude,longitude) values ('00000001-0000-4000-8000-000000000001','H01','Ga Metro',10.87,106.8) on conflict do nothing;
+insert into public.parking_spaces(id,hub_id,code,space_kind,occupancy_status) values ('00000002-0000-4000-8000-000000000001','00000001-0000-4000-8000-000000000001','H01-S1','FLEET','OCCUPIED') on conflict do nothing;
+insert into public.shared_vehicles(id,hub_id,slot_id,code,battery_percent) values ('00000003-0000-4000-8000-000000000001','00000001-0000-4000-8000-000000000001','00000002-0000-4000-8000-000000000001','EV01',75) on conflict do nothing;
+insert into public.parking_spaces(id,hub_id,code,space_kind,occupancy_status) values ('00000002-0000-4000-8000-000000000002','00000001-0000-4000-8000-000000000001','H01-S2','FLEET','OCCUPIED') on conflict do nothing;
+insert into public.shared_vehicles(id,hub_id,slot_id,code,battery_percent) values ('00000003-0000-4000-8000-000000000002','00000001-0000-4000-8000-000000000001','00000002-0000-4000-8000-000000000002','EV02',25) on conflict do nothing;
+insert into public.parking_spaces(id,hub_id,code,space_kind,occupancy_status) values ('00000002-0000-4000-8000-000000000003','00000001-0000-4000-8000-000000000001','H01-S3','FLEET','FREE') on conflict do nothing;
+insert into public.parking_spaces(id,hub_id,code,space_kind,occupancy_status) values ('00000002-0000-4000-8000-000000000004','00000001-0000-4000-8000-000000000001','H01-S4','PRIVATE','FREE') on conflict do nothing;
+insert into public.charging_points(id,hub_id,code,status) values ('00000004-0000-4000-8000-000000000001','00000001-0000-4000-8000-000000000001','CP01','AVAILABLE') on conflict do nothing;
+insert into public.mobility_hubs(id,code,name,latitude,longitude) values ('00000001-0000-4000-8000-000000000002','H02','Ký túc xá',10.87,106.8) on conflict do nothing;
+insert into public.parking_spaces(id,hub_id,code,space_kind,occupancy_status) values ('00000002-0000-4000-8000-000000000005','00000001-0000-4000-8000-000000000002','H02-S1','FLEET','OCCUPIED') on conflict do nothing;
+insert into public.shared_vehicles(id,hub_id,slot_id,code,battery_percent) values ('00000003-0000-4000-8000-000000000003','00000001-0000-4000-8000-000000000002','00000002-0000-4000-8000-000000000005','EV03',75) on conflict do nothing;
+insert into public.parking_spaces(id,hub_id,code,space_kind,occupancy_status) values ('00000002-0000-4000-8000-000000000006','00000001-0000-4000-8000-000000000002','H02-S2','FLEET','OCCUPIED') on conflict do nothing;
+insert into public.shared_vehicles(id,hub_id,slot_id,code,battery_percent) values ('00000003-0000-4000-8000-000000000004','00000001-0000-4000-8000-000000000002','00000002-0000-4000-8000-000000000006','EV04',25) on conflict do nothing;
+insert into public.parking_spaces(id,hub_id,code,space_kind,occupancy_status) values ('00000002-0000-4000-8000-000000000007','00000001-0000-4000-8000-000000000002','H02-S3','FLEET','FREE') on conflict do nothing;
+insert into public.parking_spaces(id,hub_id,code,space_kind,occupancy_status) values ('00000002-0000-4000-8000-000000000008','00000001-0000-4000-8000-000000000002','H02-S4','PRIVATE','FREE') on conflict do nothing;
+insert into public.charging_points(id,hub_id,code,status) values ('00000004-0000-4000-8000-000000000002','00000001-0000-4000-8000-000000000002','CP02','AVAILABLE') on conflict do nothing;
+insert into public.mobility_hubs(id,code,name,latitude,longitude) values ('00000001-0000-4000-8000-000000000003','H03','Khu trường',10.87,106.8) on conflict do nothing;
+insert into public.parking_spaces(id,hub_id,code,space_kind,occupancy_status) values ('00000002-0000-4000-8000-000000000009','00000001-0000-4000-8000-000000000003','H03-S1','FLEET','OCCUPIED') on conflict do nothing;
+insert into public.shared_vehicles(id,hub_id,slot_id,code,battery_percent) values ('00000003-0000-4000-8000-000000000005','00000001-0000-4000-8000-000000000003','00000002-0000-4000-8000-000000000009','EV05',75) on conflict do nothing;
+insert into public.parking_spaces(id,hub_id,code,space_kind,occupancy_status) values ('00000002-0000-4000-8000-000000000010','00000001-0000-4000-8000-000000000003','H03-S2','FLEET','OCCUPIED') on conflict do nothing;
+insert into public.shared_vehicles(id,hub_id,slot_id,code,battery_percent) values ('00000003-0000-4000-8000-000000000006','00000001-0000-4000-8000-000000000003','00000002-0000-4000-8000-000000000010','EV06',25) on conflict do nothing;
+insert into public.parking_spaces(id,hub_id,code,space_kind,occupancy_status) values ('00000002-0000-4000-8000-000000000011','00000001-0000-4000-8000-000000000003','H03-S3','FLEET','FREE') on conflict do nothing;
+insert into public.parking_spaces(id,hub_id,code,space_kind,occupancy_status) values ('00000002-0000-4000-8000-000000000012','00000001-0000-4000-8000-000000000003','H03-S4','PRIVATE','FREE') on conflict do nothing;
+insert into public.charging_points(id,hub_id,code,status) values ('00000004-0000-4000-8000-000000000003','00000001-0000-4000-8000-000000000003','CP03','OUT_OF_SERVICE') on conflict do nothing;
+commit;
