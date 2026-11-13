@@ -1,6 +1,6 @@
 # Feature modules
 
-Sáu UC chính có entry typed stub trên `main`. Không dựng service cho từng lớp/method trong diagram. Mỗi owner điền file được ghi trong [TEAM_CHECKLIST](../../docs/TEAM_CHECKLIST.md); các phần hỗ trợ được tạo khi bắt đầu làm.
+Sáu UC chính có entry typed stub trên `main`. Không dựng service cho từng lớp/method trong diagram. Mỗi owner điền file được ghi trong [TEAM_CHECKLIST](../../docs/TEAM_CHECKLIST.md); sạc và dashboard cũng đã có stub. Nền Auth đã ghép; ownership và RLS của bảng nghiệp vụ thêm cùng feature.
 
 | File/module | Phần việc |
 |---|---|

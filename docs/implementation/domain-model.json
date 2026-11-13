@@ -1,5 +1,7 @@
 {
   "version": "1.0",
+  "status": "historical-design-reference",
+  "usage": "Reference for earlier class diagrams only. Current implementation scope: README.md and 01_SCOPE_AND_RULES.md in this directory.",
   "classes": [
     {
       "name": "User",

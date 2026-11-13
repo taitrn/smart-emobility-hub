@@ -1,13 +1,18 @@
 # Kiến trúc MVP
 
-Một Next.js app: page → API route → feature service → Supabase Auth/PostgreSQL. Giữ cấu trúc hiện có, không thêm layer/framework.
+Một Next.js app: page → API route → feature service → Supabase Auth/PostgreSQL.
 
-- `src/features/`: sáu UC chính; các service đang là stub.
-- `src/lib/domain`, `src/config`: types và quy tắc chung.
-- `src/lib/http`: validation/error envelope; `requestId` chỉ để theo dõi.
-- `src/lib/auth`, `src/lib/supabase`: chờ nối tài khoản demo và quyền dữ liệu.
-- `supabase/`: migration/seed thêm dần khi làm feature.
+| Phần | Hiện trạng |
+|---|---|
+| Auth, Proxy, server guard và `/api/me` | Đã chạy local và production; Student/Operator có quyền riêng |
+| `supabase/` | Migration 001 và seed nền đã áp trên project chung; RLS đã thử |
+| `src/features/` | Sáu UC chính, sạc và dashboard có service stub; nghiệp vụ chưa triển khai |
+| `src/lib/domain`, `src/config` | Types và quy tắc dùng chung |
+| `src/lib/http` | JSON envelope, validation và lỗi; requestId để theo dõi |
+| `src/components/ui` | Button/Input/Card Tailwind dùng chung; chưa cài shadcn |
 
-Nhận/trả mô phỏng kết quả ngay. Sạc theo ưu tiên đơn giản, Operator bấm xử lý. What-if tính trên bản sao dữ liệu, trả bảng so sánh và khuyến nghị. Không có worker, command queue, receipt service hay engine simulation nhiều bước.
+Student/Operator layouts kiểm tra quyền trang; API kiểm tra lại quyền trực tiếp. Proxy refresh session, không thay thế guard/RLS. Operator demo quản lý cả mạng; chưa phân quyền theo từng Hub. Trang Admin chỉ ghi chưa hỗ trợ.
 
-[Checklist](TEAM_CHECKLIST.md) ghi phân công. [Mục 02](implementation/02_ARCHITECTURE_AND_DATA.md) ghi dữ liệu/quyền; [mục 03](implementation/03_API_CONTRACTS.md) ghi API. Có code Auth, Proxy và guard; cần áp SQL và kiểm tra bằng tài khoản thật. Các feature vẫn là placeholder/stub.
+Khi triển khai, nhận/trả mô phỏng kết quả ngay, sạc theo ưu tiên đơn giản, What-if tính trên bản sao. Không dùng worker, command queue hay receipt framework.
+
+[Checklist](TEAM_CHECKLIST.md) là nguồn phân công; [mục 02](implementation/02_ARCHITECTURE_AND_DATA.md) ghi dữ liệu, [mục 03](implementation/03_API_CONTRACTS.md) ghi API. Bảng nghiệp vụ thêm cùng feature.

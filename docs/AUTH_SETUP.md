@@ -1,5 +1,7 @@
 # Cấu hình Auth và dữ liệu nền
 
+Project chung đã có schema, seed và tài khoản; các bước tạo bên dưới chỉ dành cho quản trị project mới. Thành viên không chạy lại migration trên project chung. Kiểm tra Auth, session/role và RLS đã được thực hiện local/production; các feature chưa triển khai vẫn cần kiểm thử riêng.
+
 ## 1. Áp dụng SQL
 
 Trong Supabase của nhóm, mở SQL Editor → New query. Lần lượt chạy:

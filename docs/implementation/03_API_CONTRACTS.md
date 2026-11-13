@@ -8,12 +8,13 @@ ID UUID, thời gian ISO 8601, JSON camelCase. Mutation giữ field requestId th
 
 ## Route cần làm cùng feature
 
-Các path dưới đây có tiền tố `/api`. Các route hiện có là stub; các route còn lại thêm cùng PR feature, không phải mọi endpoint đã hoạt động.
+Các path dưới đây có tiền tố `/api`. `GET /health` và `GET /me` đã hoạt động. Các entry nghiệp vụ có sẵn vẫn là stub sau validation/Auth; những route chưa có file sẽ được thêm cùng PR feature.
 
 | Route | Chức năng |
 |---|---|
 | GET /hubs; GET /hubs/{id} | Public danh sách/chi tiết tài nguyên, không có lượt đặt của người khác |
-| GET /me | Profile/role của session |
+| GET /health | Đã chạy: 200 liveness, không kiểm tra DB |
+| GET /me | Đã chạy: id, role, hubIds=[]; chưa login trả 401. Operator không dùng hubIds để giới hạn Hub trong MVP |
 | GET /me/reservations; GET /me/trips | Dữ liệu của chính người dùng |
 | POST /vehicle-reservations | vehicleId, requestId → lượt đặt + mã nhận + hạn giữ xe |
 | POST /vehicle-reservations/{id}/cancel | requestId → lượt đã hủy |
@@ -29,7 +30,7 @@ Các path dưới đây có tiền tố `/api`. Các route hiện có là stub; 
 | POST /operator/charging/{id}/complete | Mô phỏng sạc xong và giải phóng cổng |
 | POST /operator/simulations | Input theo schema hiện tại → baseline/scenario + khuyến nghị |
 
-Login/logout dùng Supabase Auth. Không thêm API Admin, receipt, device-command, tick, incident, draft, export hoặc history trong bản đầu. Input/output cụ thể của phần hỗ trợ chốt khi viết feature; không mở thêm endpoint chỉ để khớp toàn bộ class diagram.
+Login/logout đã dùng Supabase Auth; `/login` chuyển Student tới `/hubs`, Operator tới `/operator` khi session hợp lệ. Không thêm API Admin, receipt, device-command, tick, incident, draft, export hoặc history trong bản đầu. Input/output cụ thể của phần hỗ trợ chốt khi viết feature; không mở thêm endpoint chỉ để khớp toàn bộ class diagram.
 
 ## Nhận và trả
 

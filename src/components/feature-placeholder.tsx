@@ -22,7 +22,7 @@ export function FeaturePlaceholder({ title, useCase, description, requirements }
         </ul>
       </div>
       <p className="text-sm leading-6 text-slate-500">
-        Chưa có dữ liệu hay thao tác thật trên trang này. Phần triển khai phải kiểm tra quyền tại server trước khi đọc hoặc ghi dữ liệu riêng tư.
+        Chưa có dữ liệu hay thao tác thật trên trang này. Khi triển khai, kiểm tra quyền với từng tài nguyên trước khi đọc hoặc ghi dữ liệu.
       </p>
       <Link href="/" className="inline-block text-sm font-semibold text-teal-800 hover:underline">← Trang tổng quan</Link>
     </section>

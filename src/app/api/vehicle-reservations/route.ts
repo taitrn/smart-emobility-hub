@@ -3,7 +3,7 @@ import { requireActor } from "@/lib/auth/require-actor";
 import { handleApi, readJson } from "@/lib/http/handler";
 import { success } from "@/lib/http/response";
 
-// TODO [Tiến — UC02]: replace service stub after Auth/data is integrated.
+// TODO [Tiến — UC02]: implement reservation transaction using the authenticated actor.
 export function POST(request: Request) {
   return handleApi(async context => {
     const input = await readJson(request, reserveVehicleSchema);

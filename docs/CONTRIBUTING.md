@@ -13,11 +13,12 @@ git switch --track origin/feat/uc02-reservation
 
 Nếu nhánh đã có ở local, dùng `git switch feat/uc02-reservation`. Làm việc trên nhánh riêng, push nhánh và mở PR về `main`. Khi bắt đầu phần việc mới chưa có nhánh, tạo `feat/<ten-phan-viec>` từ `main` mới nhất.
 
+Auth/data đã merge vào `main`; nhánh đã xóa. Các nhánh bên dưới chưa được tạo lại.
+
 Tên nhánh theo phần việc:
 
 | Phần việc | Người phụ trách | Nhánh |
 |---|---|---|
-| Auth và dữ liệu nền | Tài | `feat/auth-data` |
 | UC01: Hub | Tài | `feat/uc01-hubs` |
 | UC02/07: đặt và hủy xe | Tiến | `feat/uc02-reservation` |
 | UC03: nhận xe | Toàn | `feat/uc03-pickup` |
@@ -49,6 +50,6 @@ npm test
 npm run build
 ```
 
-Test hiện kiểm tra boundary input chung, không chứng minh use case/RLS đã đúng. Thêm kiểm tra hành vi tương ứng khi triển khai RPC/service, giữ tests vừa đủ.
+Test hiện kiểm tra boundary input và role, không chứng minh use case/RLS đã đúng. Thêm kiểm tra hành vi tương ứng khi triển khai RPC/service, giữ tests vừa đủ.
 
-Sau khi chạy app local, `npm run smoke` kiểm tra health và các API stub. Nếu chạy ở port khác: `npm run smoke -- http://127.0.0.1:3100`. Script này chỉ chấp nhận host local, không gửi session; nó mong API nghiệp vụ chưa làm trả 501. Khi Auth/feature được triển khai, sửa từng expectation và kiểm tra quyền tương ứng, không giữ 501 làm mục tiêu cuối.
+Sau khi chạy app local có env, đặt `$env:AUTH_CONFIGURED="1"` trên PowerShell rồi chạy `npm run smoke`. Script chỉ chạy host local, không gửi session: health 200, input sai 400, API bảo vệ 401, public feature stub 501. Không có env thì bỏ AUTH_CONFIGURED, API bảo vệ trả 503. Khi triển khai feature, cập nhật expectation tương ứng. Xem [SETUP](SETUP.md).

@@ -12,6 +12,10 @@ Tài liệu này mô tả phạm vi và kế hoạch triển khai MVP. Các ch�
 - [05 Thứ tự công việc](05_WORK_PLAN.md): phụ thuộc và điều kiện hoàn tất.
 - [06 Đối chiếu tài liệu cũ](06_SUBMISSION3_ALIGNMENT.md): giới hạn so với thiết kế đã nộp.
 
+## Hiện trạng
+
+Nền Auth/data đã chạy và được kiểm tra local/production. Các bảng tài nguyên có migration và seed; các bảng nghiệp vụ, UC01–05/07/11, sạc và dashboard vẫn chưa triển khai. Khi nhận việc, đọc SETUP và checklist; không cần dựng lại project cloud.
+
 ## Quy mô
 
 Một Next.js app, TypeScript/Tailwind, Supabase Auth và PostgreSQL, một bản demo Vercel, CI một job. Đề bài cho phép hardcode và không bắt buộc database; Supabase là lựa chọn của nhóm để dùng chung dữ liệu, không phải yêu cầu của cô.
