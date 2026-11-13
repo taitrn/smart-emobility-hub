@@ -1,13 +1,13 @@
 # 05 Thứ tự triển khai
 
-Scaffold đã có code khung và CI. Các chức năng nghiệp vụ sẽ được triển khai theo thứ tự dưới đây.
+Scaffold và nền Auth/data đã được kiểm tra local/production, có CI và Vercel. Các chức năng nghiệp vụ sẽ được triển khai theo thứ tự dưới đây.
 
 ## Thứ tự
 
-1. Tài nối project Supabase của nhóm: tài khoản demo Student/Operator, RLS, Hub/xe/chỗ/cổng và seed. Chưa cần tất cả bảng nghiệp vụ.
+1. Đã xong: Supabase Auth, role/RLS nền, Hub/xe/chỗ/cổng và seed. Thành viên cấu hình env rồi triển khai feature.
 2. Các bạn làm UI và logic thuần song song theo checklist. Thêm migration cần thiết cùng feature và trao đổi field dùng chung trước khi ghép.
 3. Ghép đặt → nhận → trả; sau đó parking, sạc, dashboard/sự cố và What-if. Sạc/What-if phải có trong demo nhưng giữ thuật toán đơn giản.
-4. Chạy manual test theo mục 04, sửa lỗi, deploy Vercel và tập demo. Không coi placeholder deploy được là MVP đã xong.
+4. Chạy manual test theo mục 04, sửa lỗi, kiểm tra bản Vercel sau ghép và tập demo. Không coi placeholder deploy được là MVP đã xong.
 
 ## Chia việc
 

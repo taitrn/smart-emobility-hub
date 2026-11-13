@@ -1,12 +1,13 @@
 # Việc của nhóm
 
-Mục tiêu: triển khai và demo MVP theo [phạm vi](implementation/01_SCOPE_AND_RULES.md). Các feature service vẫn là stub. Auth/data cần áp SQL và kiểm tra theo [AUTH_SETUP](AUTH_SETUP.md). Nhánh nhóm sẽ được tạo sau khi chốt nền; PR về main theo [CONTRIBUTING](CONTRIBUTING.md).
+Mục tiêu: triển khai và demo MVP theo [phạm vi](implementation/01_SCOPE_AND_RULES.md). Các feature service vẫn là stub. Nền Auth/data đã ghép và kiểm tra local/production. Thành viên chỉ cần cấu hình env và tài khoản được cấp. Nhánh nhóm sẽ được tạo sau khi chốt nền; PR về main theo [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Tài — nền dùng chung và UC01
 
-- [ ] `supabase/`, `src/lib/supabase/`, `src/lib/auth/require-actor.ts`, trang login: Auth demo, profile/role, RLS, seed Hub/tài nguyên và kiểm tra quyền cơ bản.
+- [x] `supabase/`, `src/lib/supabase/`, `src/lib/auth/require-actor.ts`, trang login: Auth demo, profile/role, RLS, seed Hub/tài nguyên và kiểm tra quyền cơ bản.
 - [ ] `src/features/hubs/service.ts`, `/api/hubs`, trang hubs: list/detail, pin, chỗ/cổng và loading/error.
-- [ ] Ghép PR, cấu hình Vercel khi local chạy, hướng dẫn seed/demo. Không dựng hết schema trước.
+- [x] Nối Vercel, áp migration/seed và kiểm tra Auth/RLS nền.
+- [ ] Ghép PR nghiệp vụ, chuẩn bị seed theo từng feature và chuỗi demo đầy đủ.
 
 ## Tiến — UC02/07
 
@@ -41,4 +42,4 @@ Phân công dưới đây là đề xuất phối hợp, các bạn xác nhận 
 - [ ] Ân (owner đề xuất), Toàn hỗ trợ: `src/features/operations/service.ts`, `src/app/api/operator/overview/route.ts`, dashboard và nút giả lập xe/cổng lỗi, khôi phục; không làm CRUD/incident workflow.
 - [ ] Cả nhóm: chạy chuỗi demo và các lỗi chính theo [mục 04](implementation/04_UI_AND_DEMO.md), tập giải thích và cập nhật Final.
 
-Types/error/config dùng chung giữ nguyên khi chưa cần đổi. Migration thay đổi cùng feature; trao đổi trước khi sửa field chung. UI/logic thuần có thể làm song song, dữ liệu riêng tư phải chờ Auth/quyền đúng. Tích checklist khi có hành vi chạy được, không chỉ vì có tên file.
+Types/error/config dùng chung giữ nguyên khi chưa cần đổi. Migration thay đổi cùng feature; trao đổi trước khi sửa field chung. UI/logic thuần có thể làm song song, feature có dữ liệu riêng tư phải kiểm tra ownership/RLS của bảng mới. Tích checklist khi có hành vi chạy được, không chỉ vì có tên file.

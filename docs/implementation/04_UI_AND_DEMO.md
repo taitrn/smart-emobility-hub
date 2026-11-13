@@ -4,7 +4,7 @@
 
 Dùng trang khung đã có: Hub, đăng nhập, lượt đặt, chuyến đi, parking, yêu cầu sạc và Operator/What-if. Màn Admin có thể giữ nhãn chưa hỗ trợ hoặc ẩn khỏi điều hướng; không bắt buộc triển khai riêng. Không cần đồ họa bản đồ, biểu đồ phức tạp hay giao diện điện thoại riêng.
 
-Dữ liệu mẫu: 3 Hub (Metro, KTX, khu trường), khoảng 6–10 xe, một vài chỗ FLEET/PRIVATE và 3–4 cổng. Hai Student và một Operator quản lý cả mạng. Seed một xe pin thấp, một chỗ trả trống và một cổng hỏng để thử lỗi. Mật khẩu không commit. Một nút/reset script quản trị dùng local là đủ, không mở reset công khai.
+Seed nền hiện có đúng 3 Hub (Metro, KTX, khu trường), 6 xe chung, 12 chỗ đỗ (9 FLEET, 3 PRIVATE), 3 cổng sạc (một cổng hỏng). Mỗi Hub có hai xe đang đỗ, một FLEET trống và một PRIVATE trống; pin xe là 75% hoặc 25%. Tọa độ là minh họa, chưa dùng đo khoảng cách thực tế. Hai Student và một Operator được tạo riêng trong Auth; xe cá nhân thêm theo owner thật khi làm UC05. Tình huống pin ≤20%/Hub đầy cần fixture riêng khi feature triển khai. Seed chỉ bổ sung dòng thiếu, chưa có script reset. Mật khẩu và chức năng reset không công khai.
 
 ## Sạc và sự cố
 

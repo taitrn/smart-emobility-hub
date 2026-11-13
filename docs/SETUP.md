@@ -1,55 +1,51 @@
-# Setup và tích hợp tiếp theo
+# Cài đặt và chạy
 
-## Local
+## Thành viên trong nhóm
 
-Dùng Node.js 24 LTS, npm và Git. `npm ci` → `npm run dev`; mở http://localhost:3000.
-
-Trên nền main hiện hành: chạy `npm test` để kiểm tra input boundaries. Với app local đang mở, `npm run smoke` kiểm tra health, validation và các request chưa đăng nhập; đặt AUTH_CONFIGURED=1 khi app có env Supabase. Đây không phải login hoặc kiểm thử dữ liệu nghiệp vụ.
-
-Trên PowerShell, chuẩn bị env khi cần Supabase:
+Cần Git, Node 24 và npm. Clone repo, chạy `npm ci`, copy `.env.example` thành `.env.local`, điền hai giá trị do Tài cung cấp rồi chạy `npm run dev`. Không ghi đè `.env.local` nếu đã cấu hình.
 
 ```powershell
+npm ci
 Copy-Item .env.example .env.local
+npm run dev
 ```
 
-Trên macOS/Linux: `cp .env.example .env.local`. Điền hai biến từ Supabase Dashboard → Project Settings → API, khởi động lại dev server. `NEXT_PUBLIC_*` được đưa vào browser lúc build; URL/publishable key là cấu hình public, không phải secret để vượt quyền.
+Mở http://localhost:3000. Không có env vẫn xem được trang public/health; trang riêng tư cần Supabase. Tài khoản và mật khẩu demo được chia sẻ riêng. Không chạy migration hoặc seed lại trên project chung khi chỉ muốn chạy ứng dụng.
 
-Không cần env cho shell/placeholder/health. Gọi client Supabase khi chưa cấu hình sẽ báo lỗi thay vì âm thầm dùng dữ liệu giả.
+Nền Auth/data đã được kiểm tra trên local và [Vercel production](https://smart-emobility-hub.vercel.app): đăng nhập/đăng xuất, role Student/Operator, refresh session, đổi tài khoản trong cùng tab và redirect từ `/login`. Các use case nghiệp vụ vẫn là stub.
 
-## Supabase
+## Kiểm tra local
 
-Làm theo [AUTH_SETUP](AUTH_SETUP.md) để áp migration/seed và kiểm tra Auth.
+```sh
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
 
-Scaffold chưa kết nối project Supabase của nhóm. Sử dụng cấu hình do nhóm cung cấp khi tích hợp.
+Khi app đang chạy với env Supabase, PowerShell:
 
-Khi có project demo, ghép PR Auth/data trước feature có dữ liệu riêng tư:
+```powershell
+$env:AUTH_CONFIGURED="1"
+npm run smoke
+```
 
-1. Tạo migration nền theo mục 02: profile/role, Hub/tài nguyên; Operator demo quản lý cả ba Hub. Tên bảng theo spec, ví dụ `mobility_hubs`, `shared_vehicles`.
-2. Bật RLS, giới hạn đọc/ghi; người dùng không tự gán role. Mutation cạnh tranh dùng RPC transaction nhỏ trong PR feature tương ứng.
-3. Seed theo mục 04; Auth accounts tạo qua Dashboard/công cụ quản trị. Không đưa mật khẩu vào seed, README hay Git.
-4. Ghép login/logout và session-refresh Proxy theo hướng dẫn SSR hiện hành. Server xác minh danh tính qua `getClaims()` hoặc `getUser()` rồi đọc role đáng tin cậy; không tin `getSession()` riêng lẻ.
-5. Bảo vệ trang/API trước khi thay placeholder bằng dữ liệu thật. Repo có Proxy refresh session, guard API và page layout; route group `(operator)` tự nó không tạo quyền.
-6. Kiểm tra Student/Operator và request trái quyền, kiểm tra ownership khi trả trip. Ghi kết quả thật.
+Script không gửi session: health trả 200, input sai trả 400, API có quyền trả 401; public Hub service chưa làm trả 501. Thiếu env thì bỏ AUTH_CONFIGURED và API bảo vệ trả 503. Khi triển khai feature, cập nhật expectation tương ứng. Test hiện kiểm tra boundary/role; chưa chứng minh nghiệp vụ đặt/nhận/trả.
 
-Client factories dùng publishable key/session user. Không thêm service-role/secret key vào API chung. Generate type database từ migration đã áp dụng, không coi `domain-model.json` là schema đã tồn tại.
+## Quản trị Supabase
 
-## Vercel: khi có quyền project
+Project demo chung đã có schema nền và seed. [AUTH_SETUP](AUTH_SETUP.md) dành cho người quản trị khi dựng project mới hoặc chạy lại kiểm tra quyền. Migration 001 chỉ chạy một lần; seed chỉ bổ sung dòng thiếu, không reset dữ liệu vận hành.
 
-Chưa link Vercel project trong scaffold. Người phụ trách đăng nhập tài khoản nhóm rồi:
+SQL và tài khoản demo không thay thế quyền RLS. Các bảng lượt đặt/chuyến/phiên sạc và transaction liên quan sẽ thêm cùng feature. Không dùng secret/service-role key trong API người dùng hoặc browser.
 
-1. Import private repo `taitrn/smart-emobility-hub`, framework Next.js, root `.`, Node 24.x.
-2. Install `npm ci`, build `npm run build`, output mặc định Next.js.
-3. Khi tích hợp Supabase, đặt hai biến public từ `.env.example` ở môi trường cần dùng. Placeholder có thể deploy không cần env.
-4. Deploy qua Git integration, kiểm tra URL, trang chủ và `/api/health`. Khi có login, cấu hình domain/redirect URL trong Supabase Auth.
-5. Không cần workflow deploy riêng hoặc token Vercel trong Actions. CI hiện chỉ kiểm tra source.
+## Quản trị Vercel
 
-Deployment placeholder chưa phải demo nghiệp vụ. Ghi URL/kết quả thực tế khi đã deploy.
+Project đã kết nối GitHub; production theo `main`, PR có Preview. Hai biến trong `.env.example` phải có trên môi trường cần dùng; đổi env thì redeploy. Health chỉ xác nhận app chạy, không kiểm tra database.
 
-## Tham khảo kỹ thuật
+Khi tạo lại Vercel project: import repo, framework Next.js, root `.`, Node 24, cấu hình hai biến public và deploy bằng Git integration. Không cần workflow deploy riêng hoặc token Vercel trong GitHub Actions.
 
-- [Next.js](https://nextjs.org/docs/app/getting-started/installation)
-- [Supabase SSR clients](https://supabase.com/docs/guides/auth/server-side/creating-a-client)
-- [Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security)
-- [Vercel Git deployments](https://vercel.com/docs/deployments/git)
+## Tham khảo
 
-Không có worker, microservice, ORM hoặc hạ tầng nhiều môi trường. Chỉ thêm khi Todo cần và có lý do cụ thể.
+- [Supabase SSR](https://supabase.com/docs/guides/auth/server-side/creating-a-client)
+- [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security)
+- [Vercel Git](https://vercel.com/docs/deployments/git)
