@@ -46,6 +46,8 @@ Supabase Authentication → URL Configuration: Site URL là URL Vercel của nh�
 - Login bằng Student: `/api/me` trả role STUDENT. `/reservations` mở được; `/operator` chuyển trang không có quyền.
 - Login bằng Operator: dashboard mở được; `/api/me` trả OPERATOR.
 - Logout: `/api/me` trả 401; trang riêng tư chuyển về login. Gửi API Operator bằng Student phải trả 403.
+- Trong cùng một tab: đăng nhập → đăng xuất → đăng nhập lại hoặc đổi tài khoản, lặp ba lần. Nút Đăng xuất phải luôn bấm được sau mỗi lần đăng nhập, không cần F5.
+- Khi đã đăng nhập, mở `/login` phải chuyển về `/hubs` (Student) hoặc `/operator` (Operator). Trang không có quyền hướng dẫn đăng xuất để đổi tài khoản.
 - UI đăng nhập sai không báo thành công; profile thiếu/migration lỗi phải báo rõ thay vì cấp role mặc định.
 - Chạy `supabase/tests/auth_rls.sql` trong SQL Editor sau migration để kiểm tra grants/RLS trên dữ liệu tạm rồi rollback. Đây không thay thế thử session đăng nhập thật.
 - Các API feature chưa triển khai vẫn trả 501 sau khi qua Auth; health chỉ kiểm tra app. Chưa có bằng chứng DB/deploy chỉ vì build xanh.
