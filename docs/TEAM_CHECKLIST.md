@@ -1,6 +1,6 @@
 # Việc của nhóm
 
-Mục tiêu: triển khai và demo MVP theo [phạm vi](implementation/01_SCOPE_AND_RULES.md). Các feature service vẫn là stub. Nền Auth/data đã ghép và kiểm tra local/production. Thành viên chỉ cần cấu hình env và tài khoản được cấp. Nhánh nhóm sẽ được tạo sau khi chốt nền; PR về main theo [CONTRIBUTING](CONTRIBUTING.md).
+Mục tiêu: triển khai và demo MVP theo [phạm vi](implementation/01_SCOPE_AND_RULES.md). Các feature service vẫn là stub. Nền Auth/data đã ghép và kiểm tra local/production. Thành viên chỉ cần cấu hình env và tài khoản được cấp. Các nhánh feature đã được tạo; PR về main theo [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Tài — nền dùng chung và UC01
 

@@ -4,7 +4,7 @@ Mở [TEAM_CHECKLIST](TEAM_CHECKLIST.md), chọn phần được giao rồi đ�
 
 ## Nhánh và PR
 
-Các nhánh theo bảng dưới đây sẽ được tạo từ main sau khi chốt nền private. Khi đã được thông báo có nhánh, lấy về (ví dụ UC02):
+Các nhánh theo bảng dưới đây đã được tạo từ main. Lấy đúng nhánh phần việc của mình (ví dụ UC02):
 
 ```sh
 git fetch origin
@@ -13,7 +13,7 @@ git switch --track origin/feat/uc02-reservation
 
 Nếu nhánh đã có ở local, dùng `git switch feat/uc02-reservation`. Làm việc trên nhánh riêng, push nhánh và mở PR về `main`. Khi bắt đầu phần việc mới chưa có nhánh, tạo `feat/<ten-phan-viec>` từ `main` mới nhất.
 
-Auth/data đã merge vào `main`; nhánh đã xóa. Các nhánh bên dưới chưa được tạo lại.
+Auth/data đã có trên `main`; không cần tạo lại nhánh Auth.
 
 Tên nhánh theo phần việc:
 

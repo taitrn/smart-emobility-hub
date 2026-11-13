@@ -11,7 +11,7 @@ Scaffold và nền Auth/data đã được kiểm tra local/production, có CI v
 
 ## Chia việc
 
-[TEAM_CHECKLIST](../TEAM_CHECKLIST.md) là nơi duy nhất ghi người/file/Todo chi tiết, tránh duy trì nhiều bảng phân công khác nhau. Các nhánh cho nhóm sẽ được tạo sau khi chốt nền; PR về main, theo [CONTRIBUTING](../CONTRIBUTING.md).
+[TEAM_CHECKLIST](../TEAM_CHECKLIST.md) là nơi duy nhất ghi người/file/Todo chi tiết, tránh duy trì nhiều bảng phân công khác nhau. Các nhánh feature đã được tạo; PR về main, theo [CONTRIBUTING](../CONTRIBUTING.md).
 
 ## Điều kiện bàn giao
 

@@ -4,7 +4,7 @@ BTL Công nghệ phần mềm HK261 · Nhóm L02_1. Một ứng dụng Next.js c
 
 **Phạm vi MVP:** sáu UC chính, sạc ưu tiên đơn giản, dashboard/sự cố và các kịch bản What-if đơn giản. Nhận/trả mô phỏng kết quả ngay. Không làm Admin CRUD, phạt no-show, pending ACK/đối soát, receipt framework, history/export hoặc worker. Kế hoạch tại [bộ spec MVP](docs/implementation/README.md) là đầu vào hiện hành.
 
-**`main` là nền làm việc của nhóm.** Các nhánh cho nhóm sẽ được tạo từ `main` sau khi chốt nền. Thành viên mở PR từ nhánh feature về `main`.
+**`main` là nền làm việc của nhóm.** Các nhánh feature đã được tạo từ `main`; xem bảng trong [CONTRIBUTING](docs/CONTRIBUTING.md). Thành viên mở PR từ nhánh feature về `main`.
 
 Nhận việc ở [TEAM_CHECKLIST](docs/TEAM_CHECKLIST.md), làm theo [CONTRIBUTING](docs/CONTRIBUTING.md). Hai tài liệu ngắn để ghép code là [ARCHITECTURE](docs/ARCHITECTURE.md) và [DATA_CONTRACT](docs/DATA_CONTRACT.md).
 
