@@ -11,7 +11,7 @@ Scaffold đã có code khung và CI. Các chức năng nghiệp vụ sẽ đư�
 
 ## Chia việc
 
-[TEAM_CHECKLIST](../TEAM_CHECKLIST.md) là nơi duy nhất ghi người/file/Todo chi tiết, tránh duy trì nhiều bảng phân công khác nhau. Dùng nhánh feature đã tạo sẵn, PR về main, theo [CONTRIBUTING](../CONTRIBUTING.md).
+[TEAM_CHECKLIST](../TEAM_CHECKLIST.md) là nơi duy nhất ghi người/file/Todo chi tiết, tránh duy trì nhiều bảng phân công khác nhau. Các nhánh cho nhóm sẽ được tạo sau khi chốt nền; PR về main, theo [CONTRIBUTING](../CONTRIBUTING.md).
 
 ## Điều kiện bàn giao
 

@@ -4,7 +4,7 @@ Mở [TEAM_CHECKLIST](TEAM_CHECKLIST.md), chọn phần được giao rồi đ�
 
 ## Nhánh và PR
 
-Lấy nhánh đã tạo sẵn từ remote (ví dụ UC02):
+Các nhánh theo bảng dưới đây sẽ được tạo từ main sau khi chốt nền private. Khi đã được thông báo có nhánh, lấy về (ví dụ UC02):
 
 ```sh
 git fetch origin

@@ -4,7 +4,7 @@ BTL Công nghệ phần mềm HK261 · Nhóm L02_1. Một ứng dụng Next.js c
 
 **Phạm vi MVP:** sáu UC chính, sạc ưu tiên đơn giản, dashboard/sự cố và các kịch bản What-if đơn giản. Nhận/trả mô phỏng kết quả ngay. Không làm Admin CRUD, phạt no-show, pending ACK/đối soát, receipt framework, history/export hoặc worker. Kế hoạch tại [bộ spec MVP](docs/implementation/README.md) là đầu vào hiện hành.
 
-**`main` là nền làm việc của nhóm.** Thành viên dùng nhánh feature đã tạo sẵn và mở PR về `main`.
+**`main` là nền làm việc của nhóm.** Các nhánh cho nhóm sẽ được tạo từ `main` sau khi chốt nền. Thành viên mở PR từ nhánh feature về `main`.
 
 Nhận việc ở [TEAM_CHECKLIST](docs/TEAM_CHECKLIST.md), làm theo [CONTRIBUTING](docs/CONTRIBUTING.md). Hai tài liệu ngắn để ghép code là [ARCHITECTURE](docs/ARCHITECTURE.md) và [DATA_CONTRACT](docs/DATA_CONTRACT.md).
 
@@ -19,7 +19,7 @@ npm ci
 npm run dev
 ```
 
-Mở <http://localhost:3000>. Repo private nên tài khoản clone cần được cấp quyền. Không cần Supabase để xem scaffold.
+Mở <http://localhost:3000>. Khi repo còn private, tài khoản clone cần được cấp quyền. Không cần Supabase để xem scaffold.
 
 Khi tích hợp Auth/DB, copy `.env.example` thành `.env.local`, điền URL/publishable key của project demo. Xem [setup Supabase và Vercel](docs/SETUP.md). Không commit `.env.local` hoặc mật khẩu.
 
@@ -32,7 +32,7 @@ Khi tích hợp Auth/DB, copy `.env.example` thành `.env.local`, điền URL/pu
 - `GET /api/health` kiểm tra app đang chạy, không kiểm tra database.
 - GitHub Actions một job: cài dependency, lint, typecheck, contract tests và build. Không cần cloud secret cho CI. Vercel dùng Git integration khi nối project.
 
-**Chưa triển khai use case nghiệp vụ, login/logout, phân quyền thật, migration, seed hoặc tài khoản demo.** UI placeholder công khai; API mutation dừng tại guard stub, không có actor hardcode hoặc ghi DB. Phải hoàn tất Auth/data, guard và RLS trước khi đưa dữ liệu riêng tư vào. Khai báo env không chứng minh Supabase đã kết nối.
+Auth/data có code login/logout, Proxy refresh session, guard server, migration và seed nền. Cần áp dụng SQL và tạo tài khoản theo [AUTH_SETUP](docs/AUTH_SETUP.md) trước khi kiểm tra trên Supabase thật. Các use case nghiệp vụ vẫn là stub. Khai báo env hoặc build xanh chưa chứng minh đã nối database.
 
 ## Nhận việc
 
@@ -55,6 +55,7 @@ Sáu UC chính đã có service stub để owner điền; xem checklist để bi
 git fetch origin
 git switch main
 git pull --ff-only
+# Sau khi nhánh được tạo và nhóm được thông báo:
 git switch --track origin/feat/uc02-reservation
 # Làm phần được giao, kiểm tra rồi mở PR vào main.
 npm run lint
@@ -65,7 +66,7 @@ npm run build
 
 Một PR theo một phần việc; ghi rõ đã làm, cách thử và phần còn thiếu. Khi đổi enum/schema dùng chung, cập nhật contract. `typecheck` chạy `next typegen` rồi `tsc --noEmit`, dùng được ngay sau clone. Test dùng Node 24 built-in runner, không thêm framework; hiện kiểm tra input boundaries, chưa kiểm thử nghiệp vụ DB.
 
-Sau khi chạy app local, dùng `npm run smoke` để kiểm tra health 200, input sai 400 và API stub 501. Port khác: `npm run smoke -- http://127.0.0.1:3100`. Hướng dẫn này sẽ được đổi theo feature khi có Auth/DB thật.
+Sau khi chạy app local, dùng `npm run smoke` để kiểm tra health, validation và request chưa đăng nhập. Khi có env Supabase, đặt `AUTH_CONFIGURED=1` cho script smoke (PowerShell: `$env:AUTH_CONFIGURED="1"`). Port khác: `npm run smoke -- http://127.0.0.1:3100`. Hướng dẫn này sẽ được đổi theo feature khi có Auth/DB thật.
 
 ## Cấu trúc
 

@@ -4,7 +4,7 @@
 
 Dùng Node.js 24 LTS, npm và Git. `npm ci` → `npm run dev`; mở http://localhost:3000.
 
-Trên nền main hiện hành: chạy `npm test` để kiểm tra input boundaries. Với app local đang mở, `npm run smoke` kiểm tra health và các API stub (501). Đây không phải login hoặc kiểm thử dữ liệu nghiệp vụ.
+Trên nền main hiện hành: chạy `npm test` để kiểm tra input boundaries. Với app local đang mở, `npm run smoke` kiểm tra health, validation và các request chưa đăng nhập; đặt AUTH_CONFIGURED=1 khi app có env Supabase. Đây không phải login hoặc kiểm thử dữ liệu nghiệp vụ.
 
 Trên PowerShell, chuẩn bị env khi cần Supabase:
 
@@ -16,7 +16,9 @@ Trên macOS/Linux: `cp .env.example .env.local`. Điền hai biến từ Supabas
 
 Không cần env cho shell/placeholder/health. Gọi client Supabase khi chưa cấu hình sẽ báo lỗi thay vì âm thầm dùng dữ liệu giả.
 
-## Supabase: chưa nối project thật
+## Supabase
+
+Làm theo [AUTH_SETUP](AUTH_SETUP.md) để áp migration/seed và kiểm tra Auth.
 
 Scaffold chưa kết nối project Supabase của nhóm. Sử dụng cấu hình do nhóm cung cấp khi tích hợp.
 
@@ -26,7 +28,7 @@ Khi có project demo, ghép PR Auth/data trước feature có dữ liệu riêng
 2. Bật RLS, giới hạn đọc/ghi; người dùng không tự gán role. Mutation cạnh tranh dùng RPC transaction nhỏ trong PR feature tương ứng.
 3. Seed theo mục 04; Auth accounts tạo qua Dashboard/công cụ quản trị. Không đưa mật khẩu vào seed, README hay Git.
 4. Ghép login/logout và session-refresh Proxy theo hướng dẫn SSR hiện hành. Server xác minh danh tính qua `getClaims()` hoặc `getUser()` rồi đọc role đáng tin cậy; không tin `getSession()` riêng lẻ.
-5. Bảo vệ trang/API trước khi thay placeholder bằng dữ liệu thật. Hiện chưa có Proxy hoặc guard; route group `(operator)` không tự tạo quyền bảo vệ.
+5. Bảo vệ trang/API trước khi thay placeholder bằng dữ liệu thật. Repo có Proxy refresh session, guard API và page layout; route group `(operator)` tự nó không tạo quyền.
 6. Kiểm tra Student/Operator và request trái quyền, kiểm tra ownership khi trả trip. Ghi kết quả thật.
 
 Client factories dùng publishable key/session user. Không thêm service-role/secret key vào API chung. Generate type database từ migration đã áp dụng, không coi `domain-model.json` là schema đã tồn tại.
