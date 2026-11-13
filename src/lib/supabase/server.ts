@@ -11,8 +11,7 @@ export async function createClient() {
     cookies: {
       getAll: () => cookieStore.getAll(),
       setAll(cookiesToSet) {
-        // Server Components cannot write cookies. Auth integration must add
-        // the session-refresh Proxy before using this client in protected pages.
+        // Server Components cannot write cookies; src/proxy.ts refreshes the session.
         try {
           cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
         } catch {

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { verifyRole } from "../src/lib/auth/policy.ts";
 import test from "node:test";
 import { chargingRequestSchema } from "../src/features/charging/service.ts";
 import { hubQuerySchema } from "../src/features/hubs/service.ts";
@@ -66,4 +67,13 @@ test("charging request validates its vehicle type and rejects a client role", ()
   assert.equal(chargingRequestSchema.safeParse(input).success, true);
   assert.equal(chargingRequestSchema.safeParse({ ...input, vehicleKind: "OTHER" }).success, false);
   assert.equal(chargingRequestSchema.safeParse({ ...input, role: "OPERATOR" }).success, false);
+});
+
+
+test("only trusted supported roles pass authorization", () => {
+  assert.equal(verifyRole("STUDENT", ["STUDENT"]), "STUDENT");
+  assert.equal(verifyRole("OPERATOR", ["OPERATOR"]), "OPERATOR");
+  for (const role of [undefined, "ADMIN", "student", "OPERATOR"]) {
+    assert.throws(() => verifyRole(role, ["STUDENT"]), { code: "FORBIDDEN" });
+  }
 });

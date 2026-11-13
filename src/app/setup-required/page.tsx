@@ -1,0 +1,1 @@
+export default function SetupRequired() { return <section className="space-y-4"><h1 className="text-2xl font-bold">Chưa kết nối được dữ liệu</h1><p>Kiểm tra cấu hình Supabase, migration và hồ sơ tài khoản theo docs/AUTH_SETUP.md.</p></section>; }

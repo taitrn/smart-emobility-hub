@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AuthStatus } from "./auth-status";
 import type { ReactNode } from "react";
 
 const navigation = [
@@ -21,9 +22,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link href="/" className="text-lg font-bold tracking-tight text-teal-800">
             Smart E-Mobility Hub
           </Link>
-          <Link href="/login" className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold hover:bg-slate-50">
-            Đăng nhập
-          </Link>
+          <AuthStatus />
           <nav aria-label="Điều hướng chính" className="flex w-full flex-wrap gap-x-5 gap-y-3 text-sm text-slate-600">
             {navigation.map(([href, label]) => (
               <Link key={href} href={href} className="hover:text-teal-800 hover:underline">
@@ -34,7 +33,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <div className="border-b border-amber-200 bg-amber-50 px-5 py-3 text-center text-sm text-amber-950">
-        Bản scaffold: các trang hiện là placeholder công khai, chưa xử lý nghiệp vụ hoặc phân quyền.
+        Bản phát triển: các chức năng nghiệp vụ đang được triển khai.
       </div>
       <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-5 py-10">
         {children}
