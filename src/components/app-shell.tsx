@@ -7,7 +7,6 @@ const navigation = [
   ["/hubs", "Mobility Hub"],
   ["/reservations", "Lượt đặt"],
   ["/trips", "Chuyến đi"],
-  ["/parking", "Chỗ đỗ"],
   ["/charging", "Sạc xe"],
 ] as const;
 

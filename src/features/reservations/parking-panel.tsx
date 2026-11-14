@@ -24,6 +24,7 @@ type Data = {
 };
 export function ParkingPanel({ operator = false }: { operator?: boolean }) {
   const pending = useRef<{ key: string; id: string } | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [page, setPage] = useState(1),
     [status, setStatus] = useState(""),
     [notice, setNotice] = useState("");
@@ -78,6 +79,10 @@ export function ParkingPanel({ operator = false }: { operator?: boolean }) {
   function reserve(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
+    const required: Record<string, string> = { vehicle: "Vui lòng chọn xe.", slot: "Vui lòng chọn chỗ đỗ.", start: "Vui lòng chọn giờ bắt đầu.", end: "Vui lòng chọn giờ kết thúc." };
+    const missing = Object.fromEntries(Object.entries(required).filter(([key]) => !f.get(key)));
+    setFieldErrors(missing);
+    if (Object.keys(missing).length) return;
     const startText = String(f.get("start") ?? ""),
       endText = String(f.get("end") ?? "");
     if (!startText || !endText) {
@@ -138,26 +143,30 @@ export function ParkingPanel({ operator = false }: { operator?: boolean }) {
       {data &&
         !operator &&
         (data.vehicles.length ? (
-          <form onSubmit={reserve} className="grid gap-3 rounded border p-4">
+          <form noValidate onSubmit={reserve} onChange={(e) => { const target = e.target; if ((target instanceof HTMLInputElement || target instanceof HTMLSelectElement) && target.name && target.value) setFieldErrors((errors) => ({ ...errors, [target.name]: "" })); }} className="grid gap-3 rounded border p-4">
             <label>
               Xe cá nhân
               <select required name="vehicle" className="block border p-2">
+                <option value="">Chọn xe</option>
                 {data.vehicles.map((v) => (
                   <option key={v.id} value={v.id}>
                     {v.plate_number}
                   </option>
                 ))}
               </select>
+              {fieldErrors.vehicle && <span role="alert" className="text-red-700">{fieldErrors.vehicle}</span>}
             </label>
             <label>
               Chỗ PRIVATE
               <select required name="slot" className="block border p-2">
+                <option value="">Chọn chỗ đỗ</option>
                 {data.slots.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.code} · {s.occupancy_status}
                   </option>
                 ))}
               </select>
+              {fieldErrors.slot && <span role="alert" className="text-red-700">{fieldErrors.slot}</span>}
             </label>
             <label>
               Bắt đầu
@@ -167,6 +176,7 @@ export function ParkingPanel({ operator = false }: { operator?: boolean }) {
                 name="start"
                 className="block border p-2"
               />
+              {fieldErrors.start && <span role="alert" className="text-red-700">{fieldErrors.start}</span>}
             </label>
             <label>
               Kết thúc
@@ -176,6 +186,7 @@ export function ParkingPanel({ operator = false }: { operator?: boolean }) {
                 name="end"
                 className="block border p-2"
               />
+              {fieldErrors.end && <span role="alert" className="text-red-700">{fieldErrors.end}</span>}
             </label>
             <p>
               Chọn bắt đầu từ phút kế tiếp, thời lượng ít nhất 30 phút. Giờ nhập

@@ -22,7 +22,7 @@ type Detail = {
 };
 export function HubBrowser({ initialHubId = "" }: { initialHubId?: string }) {
   const [refresh, setRefresh] = useState(0),
-    [detailRefresh, setDetailRefresh] = useState(0);
+    [detailRefresh] = useState(0);
   const [query, setQuery] = useState(""),
     [data, setData] = useState<HubListView | null>(null),
     [error, setError] = useState(""),
@@ -147,17 +147,7 @@ export function HubBrowser({ initialHubId = "" }: { initialHubId?: string }) {
               <p>Xe sẵn sàng phù hợp: {h.availableVehicleCount}</p>
               <p>Chỗ FLEET trống: {h.freeFleetSpaces}</p>
               <p>Cổng sạc khả dụng: {h.availableChargingPointCount}</p>
-              <button
-                className="text-teal-800 underline"
-                onClick={() => {
-                  setDetailError("");
-                  setDetail(null);
-                  setSelected(h.id);
-                  setDetailRefresh((v) => v + 1);
-                }}
-              >
-                Xem chi tiết
-              </button>{" "}
+              <a href={`/hubs/${h.id}`} className="text-teal-800 underline">Xem chi tiết</a>{" "}
               <a href={`/hubs/${h.id}`} className="underline">
                 Liên kết Hub
               </a>

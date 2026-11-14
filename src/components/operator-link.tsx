@@ -35,5 +35,7 @@ export function OperatorLink() {
     <Link href="/operator" className="hover:text-teal-800 hover:underline">
       Operator
     </Link>
-  ) : null;
+  ) : (
+    <Link href="/parking" className="hover:text-teal-800 hover:underline">Chỗ đỗ</Link>
+  );
 }
