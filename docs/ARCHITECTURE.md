@@ -5,8 +5,8 @@ Một Next.js app: page → API route → feature service → Supabase Auth/Post
 | Phần | Hiện trạng |
 |---|---|
 | Auth, Proxy, server guard và `/api/me` | Đã chạy local và production; Student/Operator có quyền riêng |
-| `supabase/` | Migration 001 và seed nền đã áp trên project chung; RLS đã thử |
-| `src/features/` | Sáu UC chính, sạc và dashboard có service stub; nghiệp vụ chưa triển khai |
+| `supabase/` | Migration 001–004 và seed nền đã áp trên project chung (002–004 cho parking); RLS đã thử |
+| `src/features/` | UC01 (Hub) và UC05 (parking) đã triển khai; các UC còn lại, sạc và dashboard có service stub |
 | `src/lib/domain`, `src/config` | Types và quy tắc dùng chung |
 | `src/lib/http` | JSON envelope, validation và lỗi; requestId để theo dõi |
 | `src/components/ui` | Button/Input/Card Tailwind dùng chung; chưa cài shadcn |
