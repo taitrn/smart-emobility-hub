@@ -12,7 +12,7 @@ npm run dev
 
 Mở http://localhost:3000. Không có env vẫn xem được trang public/health; trang riêng tư cần Supabase. Tài khoản và mật khẩu demo được chia sẻ riêng. Không chạy migration hoặc seed lại trên project chung khi chỉ muốn chạy ứng dụng.
 
-Nền Auth/data đã được kiểm tra trên local và [Vercel production](https://smart-emobility-hub.vercel.app): đăng nhập/đăng xuất, role Student/Operator, refresh session, đổi tài khoản trong cùng tab và redirect từ `/login`. Các use case nghiệp vụ vẫn là stub.
+Nền Auth/data đã được kiểm tra trên local và [Vercel production](https://smart-emobility-hub.vercel.app): đăng nhập/đăng xuất, role Student/Operator, refresh session, đổi tài khoản trong cùng tab và redirect từ `/login`. UC01 đã đọc dữ liệu Hub thật; các use case đặt/nhận/trả và vận hành vẫn là stub.
 
 ## Kiểm tra local
 
@@ -30,7 +30,7 @@ $env:AUTH_CONFIGURED="1"
 npm run smoke
 ```
 
-Script không gửi session: health trả 200, input sai trả 400, API có quyền trả 401; public Hub service chưa làm trả 501. Thiếu env thì bỏ AUTH_CONFIGURED và API bảo vệ trả 503. Khi triển khai feature, cập nhật expectation tương ứng. Test hiện kiểm tra boundary/role; chưa chứng minh nghiệp vụ đặt/nhận/trả.
+Script không gửi session: health trả 200, input sai trả 400, API có quyền trả 401; Hub đã triển khai: trả 200 khi kết nối Supabase hoạt động; thiếu cấu hình hoặc DB lỗi trả 503. AUTH_CONFIGURED phải khớp cấu hình lúc build/chạy app; không dùng smoke để chấp nhận DB lỗi khi đã kỳ vọng kết nối. Thiếu env thì bỏ AUTH_CONFIGURED và API bảo vệ trả 503. Khi triển khai feature, cập nhật expectation tương ứng. Test hiện kiểm tra boundary/role; chưa chứng minh nghiệp vụ đặt/nhận/trả.
 
 ## Quản trị Supabase
 
