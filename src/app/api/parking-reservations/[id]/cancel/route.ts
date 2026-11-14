@@ -7,10 +7,10 @@ export function POST(
   request: Request,
   route: RouteContext<"/api/parking-reservations/[id]/cancel">,
 ) {
-  return handleApi(async () => {
-    const id = uuidSchema.parse((await route.params).id),
-      input = await readJson(request, mutationSchema.strict());
+  return handleApi(async (context) => {
     await requireActor(["STUDENT"]);
+    const input = await readJson(request, mutationSchema.strict(), context);
+    const id = uuidSchema.parse((await route.params).id);
     return success(
       await parkingCommand("CANCEL", { reservationId: id }),
       input.requestId,

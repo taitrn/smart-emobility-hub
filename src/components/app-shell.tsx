@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { OperatorLink } from "./operator-link";
 import { AuthStatus } from "./auth-status";
 import type { ReactNode } from "react";
 
@@ -8,7 +9,6 @@ const navigation = [
   ["/trips", "Chuyến đi"],
   ["/parking", "Chỗ đỗ"],
   ["/charging", "Sạc xe"],
-  ["/operator", "Operator"],
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -19,16 +19,27 @@ export function AppShell({ children }: { children: ReactNode }) {
       </a>
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-5">
-          <Link href="/" className="text-lg font-bold tracking-tight text-teal-800">
+          <Link
+            href="/"
+            className="text-lg font-bold tracking-tight text-teal-800"
+          >
             Smart E-Mobility Hub
           </Link>
           <AuthStatus />
-          <nav aria-label="Điều hướng chính" className="flex w-full flex-wrap gap-x-5 gap-y-3 text-sm text-slate-600">
+          <nav
+            aria-label="Điều hướng chính"
+            className="flex w-full flex-wrap gap-x-5 gap-y-3 text-sm text-slate-600"
+          >
             {navigation.map(([href, label]) => (
-              <Link key={href} href={href} className="hover:text-teal-800 hover:underline">
+              <Link
+                key={href}
+                href={href}
+                className="hover:text-teal-800 hover:underline"
+              >
                 {label}
               </Link>
             ))}
+            <OperatorLink />
           </nav>
         </div>
       </header>

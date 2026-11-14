@@ -4,12 +4,23 @@ import type { HubListView } from "@/lib/domain/views";
 import type { HubResources } from "./summary";
 type Detail = {
   hub: HubResources["hubs"][number];
-  vehicles: HubResources["vehicles"];
-  spaces: HubResources["spaces"];
-  chargingPoints: HubResources["points"];
+  vehicles: {
+    id: string;
+    code: string;
+    vehicleType: string;
+    batteryPercent: number;
+    status: string;
+  }[];
+  spaces: {
+    id: string;
+    code: string;
+    spaceKind: string;
+    occupancyStatus: string;
+  }[];
+  chargingPoints: { id: string; code: string; status: string }[];
   asOf: string;
 };
-export function HubBrowser() {
+export function HubBrowser({ initialHubId = "" }: { initialHubId?: string }) {
   const [refresh, setRefresh] = useState(0),
     [detailRefresh, setDetailRefresh] = useState(0);
   const [query, setQuery] = useState(""),
@@ -18,7 +29,7 @@ export function HubBrowser() {
     [detailError, setDetailError] = useState(""),
     [loading, setLoading] = useState(true),
     [detail, setDetail] = useState<Detail | null>(null),
-    [selected, setSelected] = useState("");
+    [selected, setSelected] = useState(initialHubId);
   useEffect(() => {
     const c = new AbortController();
     fetch(`/api/hubs?${query}`, { signal: c.signal, cache: "no-store" })
@@ -51,6 +62,10 @@ export function HubBrowser() {
   }, [selected, detailRefresh]);
   function search(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!e.currentTarget.checkValidity()) {
+      setError("Pin phải nằm trong khoảng 0–100%.");
+      return;
+    }
     const f = new FormData(e.currentTarget),
       q = new URLSearchParams();
     for (const [k, v] of f) if (String(v).trim()) q.set(k, String(v).trim());
@@ -66,7 +81,13 @@ export function HubBrowser() {
     <section className="space-y-6">
       <h1 className="text-3xl font-bold">Mobility Hub</h1>
       <p>Tra cứu xe, pin, chỗ đỗ và cổng sạc tại Hub.</p>
-      <form onSubmit={search} className="flex flex-wrap items-end gap-4">
+      <form
+        onSubmit={search}
+        onInvalid={() =>
+          setError("Kiểm tra bộ lọc: pin phải nằm trong khoảng 0–100%.")
+        }
+        className="flex flex-wrap items-end gap-4"
+      >
         <label>
           Tên hoặc mã Hub
           <input
@@ -136,7 +157,10 @@ export function HubBrowser() {
                 }}
               >
                 Xem chi tiết
-              </button>
+              </button>{" "}
+              <a href={`/hubs/${h.id}`} className="underline">
+                Liên kết Hub
+              </a>
             </article>
           ))}
         </div>
@@ -159,7 +183,7 @@ export function HubBrowser() {
           {detail.vehicles.length ? (
             detail.vehicles.map((v) => (
               <p key={v.id}>
-                {v.code} · {v.vehicle_type} · pin {v.battery_percent}% ·{" "}
+                {v.code} · {v.vehicleType} · pin {v.batteryPercent}% ·{" "}
                 {v.status}
               </p>
             ))
@@ -169,7 +193,7 @@ export function HubBrowser() {
           <h3 className="font-bold">Chỗ đỗ</h3>
           {detail.spaces.map((s) => (
             <p key={s.id}>
-              {s.code} · {s.space_kind} · {s.occupancy_status}
+              {s.code} · {s.spaceKind} · {s.occupancyStatus}
             </p>
           ))}
           <p>

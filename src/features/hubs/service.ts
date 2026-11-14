@@ -75,9 +75,27 @@ export async function getHub(id: string) {
   if (!hub) throw new AppError("NOT_FOUND", "Không tìm thấy Hub.", 404);
   return {
     hub,
-    vehicles: data.vehicles,
-    spaces: data.spaces,
-    chargingPoints: data.points,
+    vehicles: data.vehicles.map((v) => ({
+      id: v.id,
+      hubId: v.hub_id,
+      code: v.code,
+      vehicleType: v.vehicle_type,
+      batteryPercent: v.battery_percent,
+      status: v.status,
+    })),
+    spaces: data.spaces.map((s) => ({
+      id: s.id,
+      hubId: s.hub_id,
+      code: s.code,
+      spaceKind: s.space_kind,
+      occupancyStatus: s.occupancy_status,
+    })),
+    chargingPoints: data.points.map((p) => ({
+      id: p.id,
+      hubId: p.hub_id,
+      code: p.code,
+      status: p.status,
+    })),
     asOf: new Date().toISOString(),
   };
 }
