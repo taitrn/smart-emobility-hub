@@ -15,6 +15,8 @@ Chạy `supabase/tests/parking.sql` trên database thử sau migration; không c
 
 Migration tạo profile và năm bảng tài nguyên, RLS và grants tường minh. Migration 002 bổ sung lượt đặt parking; các bảng đặt xe/chuyến/sạc chưa tạo; chúng đi cùng feature. Không chạy migration vào database khác đang có dữ liệu mà chưa kiểm tra. Nếu báo lỗi, dừng và ghi lại thông báo; không tắt RLS để xử lý.
 
+Khi cập nhật feature parking đã có 002/003, chỉ review và áp `supabase/migrations/004_parking_review_fixes.sql` một lần. Migration giữ lượt đặt cũ, thêm retry theo request ID và API danh sách có giới hạn. Chạy `supabase/tests/parking_review.sql` ở database test đã seed tài nguyên; không chạy fixtures trên project chung. Không rerun 001/002/004 nếu đã áp.
+
 ## 2. Tạo tài khoản demo
 
 Authentication → Users → Add user: tạo hai Student và một Operator bằng email hợp lệ do nhóm chọn, mật khẩu riêng, xác nhận email bằng công cụ quản trị. Không commit email đăng nhập/mật khẩu demo vào repo public. Profile mới mặc định STUDENT; user không thể tự gán role bằng metadata.
@@ -61,3 +63,5 @@ Supabase Authentication → URL Configuration: Site URL là URL Vercel của nh�
 ## Component UI
 
 `src/components/ui` có Button, Input và Card dùng Tailwind, được dùng ở login. Đây là component nền của repo, chưa cài shadcn CLI/registry. Có thể bổ sung shadcn khi một feature cần component tương tác; tránh ghi đè các Supabase client đang dùng.
+
+Thứ tự deploy phiên fix: áp 004 thành công trước, sau đó mới merge/deploy code mới, rồi kiểm thử end-to-end. Không để code mới gọi parking_list khi database chưa có hàm này.

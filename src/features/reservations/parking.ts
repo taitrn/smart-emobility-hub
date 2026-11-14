@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SHARED_CONFIG } from "../../config/shared.ts";
+import { parkingWindowError, validParkingOffset } from "./parking-rules.ts";
 import {
   mutationSchema,
   timestampSchema,
@@ -13,16 +13,14 @@ export const reserveParkingSchema = mutationSchema
   .extend({
     privateVehicleId: uuidSchema,
     slotId: uuidSchema,
-    start: timestampSchema,
-    end: timestampSchema,
+    start: timestampSchema.refine(validParkingOffset, "Múi giờ tối đa ±14:00."),
+    end: timestampSchema.refine(validParkingOffset, "Múi giờ tối đa ±14:00."),
   })
   .strict()
-  .refine(
-    ({ start, end }) =>
-      Date.parse(end) - Date.parse(start) >=
-      SHARED_CONFIG.reservation.minimumParkingMinutes * 60_000,
-    { path: ["end"], message: "Khoảng đặt phải dài ít nhất 30 phút." },
-  );
+  .superRefine(({ start, end }, ctx) => {
+    const message = parkingWindowError(start, end);
+    if (message) ctx.addIssue({ code: "custom", path: ["end"], message });
+  });
 export type ReserveParkingInput = z.infer<typeof reserveParkingSchema>;
 
 export const parkingEventSchema = mutationSchema
@@ -53,7 +51,41 @@ export async function parkingCommand(action: string, input: object) {
       ],
       HUB_MAINTENANCE: [409, "Hub đang bảo trì."],
     };
+    if (error.code?.startsWith("22"))
+      throw new AppError(
+        "INVALID_INPUT",
+        "Ngày giờ hoặc ID không hợp lệ.",
+        400,
+      );
+    if (
+      ["PGRST202", "PGRST205", "08000", "08006", "57014"].includes(
+        error.code,
+      ) ||
+      error.message === "TypeError: fetch failed"
+    )
+      throw new AppError(
+        "DATABASE_UNAVAILABLE",
+        "Chưa kết nối được dịch vụ parking. Kiểm tra cấu hình/migration.",
+        503,
+        true,
+      );
+    errors.REQUEST_ID_REUSED = [
+      409,
+      "Mã yêu cầu đã được dùng với nội dung khác.",
+    ];
+    const detailMessages: Record<string, string> = {
+      ARRIVAL_TOO_EARLY: "Chưa tới giờ bắt đầu lượt đặt.",
+      ARRIVAL_TOO_LATE: "Đã quá giờ kết thúc lượt đặt.",
+      SLOT_OVERLAP: "Chỗ đỗ đã có lịch trong khoảng giờ này.",
+      VEHICLE_OVERLAP: "Xe đã có lịch đỗ trong khoảng giờ này.",
+    };
     const entry = errors[error.message];
+    if (entry && detailMessages[error.details])
+      throw new AppError(
+        error.message as import("../../lib/http/errors.ts").ErrorCode,
+        detailMessages[error.details],
+        entry[0],
+      );
     if (entry)
       throw new AppError(
         error.message as import("../../lib/http/errors.ts").ErrorCode,
@@ -61,10 +93,9 @@ export async function parkingCommand(action: string, input: object) {
         entry[0],
       );
     throw new AppError(
-      "DATABASE_UNAVAILABLE",
-      "Không thể xử lý parking. Kiểm tra migration 002 và thử lại.",
-      503,
-      true,
+      "INTERNAL_ERROR",
+      "Không thể xử lý parking. Vui lòng báo mã yêu cầu cho nhóm.",
+      500,
     );
   }
   return data as ParkingReservationView;
@@ -75,14 +106,15 @@ export async function reserveParking(
 ): Promise<ParkingReservationView> {
   return parkingCommand("RESERVE", input);
 }
-export async function parkingData() {
+export async function parkingData(page = 1, status?: string) {
   const { createClient } = await import("../../lib/supabase/server");
   const db = await createClient();
   const [reservations, vehicles, slots] = await Promise.all([
-    db
-      .from("parking_reservations")
-      .select("id,private_vehicle_id,slot_id,starts_at,ends_at,status")
-      .order("starts_at"),
+    db.rpc("parking_list", {
+      p_limit: 10,
+      p_offset: (page - 1) * 10,
+      p_status: status ?? null,
+    }),
     db.from("private_vehicles").select("id,plate_number"),
     db
       .from("parking_spaces")
@@ -94,11 +126,12 @@ export async function parkingData() {
   if ([reservations, vehicles, slots].some((r) => r.error))
     throw new AppError(
       "DATABASE_UNAVAILABLE",
-      "Chưa đọc được parking. Cần áp migration 002 cho môi trường đang thử.",
+      "Chưa đọc được parking. Cần áp migration parking mới nhất cho môi trường đang thử.",
       503,
     );
   return {
-    reservations: reservations.data ?? [],
+    reservations: reservations.data?.reservations ?? [],
+    total: reservations.data?.total ?? 0,
     vehicles: vehicles.data ?? [],
     slots: slots.data ?? [],
   };

@@ -5,6 +5,8 @@ export const SHARED_CONFIG = {
   reservation: {
     vehicleHoldMinutes: 15,
     minimumParkingMinutes: 30,
+    maximumParkingHours: 24,
+    maximumParkingAdvanceDays: 30,
   },
   charging: { priorityBatteryPercent: 20, priorityDepartureMinutes: 60 },
   simulation: {
