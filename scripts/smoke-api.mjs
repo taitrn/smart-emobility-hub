@@ -10,7 +10,7 @@ const id = "00000000-0000-4000-8000-000000000001";
 const body = { requestId: crypto.randomUUID() };
 const cases = [
   ["GET", "/api/health", undefined, 200],
-  ["GET", "/api/hubs?minBattery=75", undefined, 501],
+  ["GET", "/api/hubs?minBattery=75", undefined, process.env.AUTH_CONFIGURED === "1" ? 200 : 503],
   ["GET", "/api/operator/overview", undefined, 501],
   ["POST", "/api/charging-requests", { ...body, vehicleId: id, vehicleKind: "PRIVATE", hubId: id }, 501],
   ["GET", "/api/hubs?minBattery=101", undefined, 400],
