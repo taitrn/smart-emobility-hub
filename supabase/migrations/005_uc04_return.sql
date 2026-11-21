@@ -1,5 +1,13 @@
-begin;
+-- UC04: Tạo bảng lưu chuyến đi, bảng mô phỏng lỗi khóa và hàm xử lý trả xe.
+-- public.trips lưu chuyến đi và thông tin trả xe.
+-- app_private.return_lock_failures lưu slot_id của các chỗ đỗ có lỗi khóa mô phỏng.
+-- public.return_fleet_vehicle(p_trip_id, p_hub_id, p_slot_id) kiểm tra chủ
+-- chuyến, trạng thái ACTIVE và chỗ FLEET còn trống tại Hub đã chọn.
+-- Khi khóa mô phỏng thành công, hàm cập nhật trong cùng giao dịch:
+-- public.trips → COMPLETED, public.shared_vehicles → AVAILABLE,
+-- public.parking_spaces → OCCUPIED.
 
+begin;
 -- Shared with UC03. Add the reservation FK when UC02's table is integrated.
 create table public.trips (
   id uuid primary key default gen_random_uuid(),
