@@ -6,6 +6,25 @@ import type {
 // Shared API DTOs. These interfaces do not imply a database table exists.
 export type HubListView = { hubs: HubSummary[]; asOf: string; stale: boolean };
 
+export type ChargingSessionView = {
+  id: string;
+  requesterId: string;
+  vehicleKind: "SHARED" | "PRIVATE";
+  vehicleId: string;
+  vehicleCode: string;
+  hubId: string;
+  hubCode: string;
+  hubName: string;
+  chargingPointId?: string;
+  chargingPointCode?: string;
+  batteryPercent: number;
+  desiredDepartureAt?: string;
+  priority: "HIGH" | "NORMAL";
+  status: "WAITING" | "CHARGING" | "COMPLETED" | "FAILED" | "CANCELLED";
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type VehicleReservationView = {
   id: string;
   vehicleId: string;

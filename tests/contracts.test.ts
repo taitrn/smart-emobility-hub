@@ -6,6 +6,7 @@ import { hubQuerySchema } from "../src/features/hubs/service.ts";
 import { reserveVehicleSchema } from "../src/features/reservations/vehicle.ts";
 import { reserveParkingSchema } from "../src/features/reservations/parking.ts";
 import { simulationSchema } from "../src/features/simulation/service.ts";
+import { chargingPriority } from "../src/features/charging/service.ts";
 
 const id = "00000000-0000-4000-8000-000000000001";
 const otherId = "00000000-0000-4000-8000-000000000002";
@@ -69,6 +70,13 @@ test("charging request validates its vehicle type and rejects a client role", ()
   assert.equal(chargingRequestSchema.safeParse({ ...input, role: "OPERATOR" }).success, false);
 });
 
+test("charging priority uses battery and 0 to 60 minute departure windows", () => {
+  const now = Date.parse("2026-11-22T10:00:00Z");
+  assert.equal(chargingPriority(20, undefined, now), "HIGH");
+  assert.equal(chargingPriority(75, "2026-11-22T10:30:00Z", now), "HIGH");
+  assert.equal(chargingPriority(75, "2026-11-22T11:30:00Z", now), "NORMAL");
+  assert.equal(chargingPriority(75, undefined, now), "NORMAL");
+});
 
 test("only trusted supported roles pass authorization", () => {
   assert.equal(verifyRole("STUDENT", ["STUDENT"]), "STUDENT");
