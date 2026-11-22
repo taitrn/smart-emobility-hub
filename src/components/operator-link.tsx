@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/browser";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 export function OperatorLink() {
+  const onLoginPage = usePathname() === "/login";
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -30,7 +32,7 @@ export function OperatorLink() {
       alive = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [onLoginPage]);
   return visible ? (
     <Link href="/operator" className="hover:text-teal-800 hover:underline">
       Operator

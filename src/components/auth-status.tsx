@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/browser";
@@ -7,6 +7,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { Button } from "./ui/button";
 export function AuthStatus() {
   const router = useRouter();
+  const onLoginPage = usePathname() === "/login";
   const [signedIn, setSignedIn] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -25,7 +26,7 @@ export function AuthStatus() {
       if (active && !authEventReceived) setSignedIn(false);
     });
     return () => { active = false; data.subscription.unsubscribe(); };
-  }, []);
+  }, [onLoginPage]);
   async function logout() {
     setBusy(true); setMessage("");
     try { const { error } = await createClient().auth.signOut(); if (error) throw error; setSignedIn(false); router.replace("/login"); router.refresh(); }
