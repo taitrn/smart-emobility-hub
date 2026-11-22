@@ -6,16 +6,43 @@ import type {
 // Shared API DTOs. These interfaces do not imply a database table exists.
 export type HubListView = { hubs: HubSummary[]; asOf: string; stale: boolean };
 
+export type HubDetailView = {
+  hub: Pick<HubSummary, "id" | "code" | "name" | "status"> & { latitude: number; longitude: number };
+  vehicles: {
+    id: string;
+    hubId: string;
+    code: string;
+    vehicleType: string;
+    batteryPercent: number;
+    status: string;
+    isBookable: boolean;
+  }[];
+  spaces: {
+    id: string;
+    hubId: string;
+    code: string;
+    spaceKind: string;
+    occupancyStatus: string;
+  }[];
+  chargingPoints: { id: string; hubId: string; code: string; status: string }[];
+  asOf: string;
+};
+
 export type VehicleReservationView = {
   id: string;
   vehicleId: string;
+  vehicleCode: string;
   hubId: string;
+  hubName: string;
+  pickupSlotId: string;
+  pickupSlotCode: string;
   status: VehicleReservationStatus;
   confirmedAt: string;
   expiresAt: string;
   pickupCode?: string; // Owner only, while the hold is valid. Never log this.
   deviceCommandId?: string;
   tripId?: string;
+  tripStatus?: TripStatus;
 };
 
 export type TripView = {

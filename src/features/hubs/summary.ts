@@ -16,6 +16,7 @@ export type HubResources = {
     vehicle_type: string;
     battery_percent: number;
     status: string;
+    is_bookable: boolean;
   }[];
   spaces: {
     id: string;
@@ -56,7 +57,7 @@ export function summarizeHubs(
           ? data.vehicles.filter(
               (v) =>
                 v.hub_id === h.id &&
-                v.status === "AVAILABLE" &&
+                v.is_bookable &&
                 (!query.vehicleType || v.vehicle_type === query.vehicleType) &&
                 v.battery_percent >= (query.minBattery ?? 0),
             ).length
