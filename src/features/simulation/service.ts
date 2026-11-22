@@ -3,7 +3,8 @@ import { SHARED_CONFIG } from "../../config/shared.ts";
 import { mutationSchema, uuidSchema } from "../../lib/domain/schemas.ts";
 import type { Actor } from "../../lib/domain/types.ts";
 import type { SimulationRunView } from "../../lib/domain/views.ts";
-import { notImplemented } from "../../lib/http/errors.ts";
+import { AppError } from "../../lib/http/errors.ts";
+import { runSimulationEngine, type SimulationSnapshot } from "./engine.ts";
 
 const policy = SHARED_CONFIG.simulation;
 export const simulationSchema = mutationSchema.extend({
@@ -25,9 +26,57 @@ export const simulationSchema = mutationSchema.extend({
 export type SimulationInput = z.infer<typeof simulationSchema>;
 
 export async function runSimulation(_actor: Actor, _input: SimulationInput): Promise<SimulationRunView> {
-  // TODO [Việt Anh — UC11]: authorized network snapshot, deterministic engine,
-  // report full Hubs and most parked vehicles separately; estimate arrival overflow.
-  // Validate failed charging points against capacity.
-  // No live vehicle movement or queue edits. Put pure engine in engine.ts.
-  throw notImplemented("UC11 — What-if Simulation");
+  const { isSupabaseConfigured } = await import("../../lib/supabase/config");
+  if (!isSupabaseConfigured())
+    throw new AppError("DATABASE_UNAVAILABLE", "Chưa cấu hình Supabase.", 503);
+
+  const { createClient } = await import("../../lib/supabase/server");
+  const db = await createClient();
+  const { data, error } = await db.rpc("simulation_snapshot", {
+    p_hub_ids: _input.hubIds,
+  });
+  if (error) {
+    if (error.message === "UNAUTHENTICATED")
+      throw new AppError("UNAUTHENTICATED", "Vui lòng đăng nhập.", 401);
+    if (error.message === "FORBIDDEN")
+      throw new AppError("FORBIDDEN", "Chỉ Operator mới được chạy mô phỏng.", 403);
+    if (error.message === "NOT_FOUND")
+      throw new AppError("NOT_FOUND", "Không tìm thấy một hoặc nhiều Hub.", 404);
+    if (error.message === "INVALID_INPUT")
+      throw new AppError("INVALID_INPUT", "Danh sách Hub mô phỏng không hợp lệ.", 400);
+    throw new AppError("DATABASE_UNAVAILABLE", "Không thể đọc snapshot vận hành nhất quán.", 503, true);
+  }
+  if (!data)
+    throw new AppError("DATABASE_UNAVAILABLE", "Không thể đọc snapshot vận hành nhất quán.", 503, true);
+
+  const snapshot = data as SimulationSnapshot;
+
+  const startedAt = new Date();
+  let result;
+  try {
+    result = runSimulationEngine(_input, snapshot);
+  } catch (error) {
+    throw new AppError("INVALID_INPUT", error instanceof Error ? error.message : "Snapshot mô phỏng không hợp lệ.", 400);
+  }
+
+  const finishedAt = new Date();
+  return {
+    id: crypto.randomUUID(),
+    status: "COMPLETED",
+    params: {
+      hubIds: _input.hubIds,
+      demandMultiplier: _input.demandMultiplier,
+      failedChargingPoints: _input.failedChargingPoints,
+      projectedArrivals: _input.projectedArrivals,
+      arrivalHubId: _input.arrivalHubId,
+      horizonMinutes: _input.horizonMinutes,
+      seed: _input.seed,
+    },
+    baselineAsOf: snapshot.asOf,
+    startedAt: startedAt.toISOString(),
+    finishedAt: finishedAt.toISOString(),
+    durationMs: finishedAt.getTime() - startedAt.getTime(),
+    hubMetrics: result.hubMetrics,
+    recommendations: result.recommendations,
+  };
 }
