@@ -5,9 +5,9 @@ import { createClient } from "@/lib/supabase/browser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Brand } from "@/components/app-shell";
+import { Brand } from "@/components/brand";
+import { Icon } from "@/components/ui/icon";
 import { PageHeading } from "@/components/ui/workspace";
-import { ReservationIcon } from "@/features/reservations/reservation-ui";
 
 export function LoginForm() {
   const router = useRouter();
@@ -35,9 +35,9 @@ export function LoginForm() {
           <h2 className="text-2xl font-bold text-[#153f34] lg:text-3xl">Đặt xe dùng chung nhanh hơn</h2>
           <p className="app-muted">Tra cứu xe tại các Hub trong khu đô thị ĐHQG-HCM và giữ xe trước khi đến nhận.</p>
           <ul className="hidden space-y-3 text-sm font-semibold lg:block">
-            <li className="flex items-center gap-2"><ReservationIcon name="pin" /> Tra cứu Hub và xe khả dụng</li>
-            <li className="flex items-center gap-2"><ReservationIcon name="calendar" /> Giữ xe trong 15 phút</li>
-            <li className="flex items-center gap-2"><ReservationIcon name="key" /> Nhận xe tại Hub bằng mã đặt</li>
+            <li className="flex items-center gap-2"><Icon name="pin" /> Tra cứu Hub và xe khả dụng</li>
+            <li className="flex items-center gap-2"><Icon name="calendar" /> Giữ xe trong 15 phút</li>
+            <li className="flex items-center gap-2"><Icon name="key" /> Nhận xe tại Hub bằng mã đặt</li>
           </ul>
         </div>
         <p className="app-muted hidden lg:block">VNU-HCM - Smart E-Mobility Hub</p>

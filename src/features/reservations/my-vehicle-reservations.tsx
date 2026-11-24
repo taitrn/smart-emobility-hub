@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useRef, useState } from "react";
+import { PageHeading } from "@/components/ui/workspace";
 import { SHARED_CONFIG } from "@/config/shared";
 import type { VehicleReservationView } from "@/lib/domain/views";
 import {
@@ -17,7 +18,6 @@ import {
   primaryAction,
   ReservationCard,
   ReservationError,
-  ReservationHeading,
   reservationGrid,
   secondaryAction,
   SummaryRow,
@@ -86,7 +86,7 @@ function HoldDetails({ reservation, remaining, justPlaced, onCancel }: {
   return (
     <div className={reservationGrid}>
       <div className="space-y-5">
-        <ReservationHeading title={justPlaced ? "Đặt xe thành công" : "Lượt đặt của tôi"}
+        <PageHeading title={justPlaced ? "Đặt xe thành công" : "Lượt đặt của tôi"}
           description="Đến đúng Hub và ô đỗ trước khi hết thời gian giữ xe." />
         <ReservationCard className="space-y-1">
           <h2 className="text-xs font-semibold tracking-wide text-[#546a60] uppercase" id="hold-clock-label">Thời gian giữ xe còn lại</h2>
@@ -198,7 +198,7 @@ export function MyVehicleReservations({ placedId }: { placedId?: string }) {
 
   return (
     <section className="space-y-5">
-      {!active && <ReservationHeading title="Lượt đặt của tôi" description="Theo dõi các lượt đặt xe dùng chung của bạn." />}
+      {!active && <PageHeading title="Lượt đặt của tôi" description="Theo dõi các lượt đặt xe dùng chung của bạn." />}
       {loading && <p role="status" className="text-sm text-[#546a60]">Đang tải lượt đặt…</p>}
       {error && <ReservationError message={error} onRetry={reload} />}
       {notice && <p role="status" className="rounded-lg border border-[#dce7df] bg-[#f4faf7] px-4 py-3 text-sm text-[#153f34]">{notice}</p>}

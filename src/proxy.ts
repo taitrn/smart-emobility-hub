@@ -19,4 +19,4 @@ export async function proxy(request: NextRequest) {
   response.headers.set("Cache-Control", "private, no-store");
   return response;
 }
-export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.svg|api/health).*)"] };
+export const config = { matcher: ["/((?!_next/static|_next/image|icons/|favicon.ico|icon.svg|api/health).*)"] };
