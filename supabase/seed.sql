@@ -24,4 +24,13 @@ insert into public.shared_vehicles(id,hub_id,slot_id,code,battery_percent) value
 insert into public.parking_spaces(id,hub_id,code,space_kind,occupancy_status) values ('00000002-0000-4000-8000-000000000011','00000001-0000-4000-8000-000000000003','H03-S3','FLEET','FREE') on conflict do nothing;
 insert into public.parking_spaces(id,hub_id,code,space_kind,occupancy_status) values ('00000002-0000-4000-8000-000000000012','00000001-0000-4000-8000-000000000003','H03-S4','PRIVATE','FREE') on conflict do nothing;
 insert into public.charging_points(id,hub_id,code,status) values ('00000004-0000-4000-8000-000000000003','00000001-0000-4000-8000-000000000003','CP03','OUT_OF_SERVICE') on conflict do nothing;
+
+-- Classroom demo: one low-battery scooter and a second private parking option at H01.
+insert into public.parking_spaces(id,hub_id,code,space_kind,occupancy_status) values
+  ('00000002-0000-4000-8000-000000000013','00000001-0000-4000-8000-000000000001','H01-S5','FLEET','OCCUPIED'),
+  ('00000002-0000-4000-8000-000000000014','00000001-0000-4000-8000-000000000001','H01-S6','PRIVATE','FREE')
+on conflict do nothing;
+insert into public.shared_vehicles(id,hub_id,slot_id,code,vehicle_type,battery_percent) values
+  ('00000003-0000-4000-8000-000000000007','00000001-0000-4000-8000-000000000001','00000002-0000-4000-8000-000000000013','EV07','E_SCOOTER',15)
+on conflict do nothing;
 commit;

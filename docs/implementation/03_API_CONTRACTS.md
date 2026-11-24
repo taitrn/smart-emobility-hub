@@ -2,39 +2,41 @@
 
 ## Dùng chung
 
-Giữ các route/service hiện có trên `main`, Zod validation và envelope `ok/data/error/requestId`. Service chưa triển khai vẫn trả 501; không trả thành công giả. Input sai trả 400; đăng nhập/quyền là 401/403; tài nguyên không có là 404; xung đột trạng thái là 409; lỗi giả lập thiết bị là 503.
+Các route dùng Zod và envelope `ok/data/error/requestId`. Lỗi thường gặp: 400 input sai, 401/403 session hoặc quyền, 404 không tìm thấy, 409 xung đột trạng thái, 503 lỗi thiết bị mô phỏng hoặc thiếu kết nối/cấu hình.
 
-ID UUID, thời gian ISO 8601, JSON camelCase. Mutation giữ field requestId theo scaffold để theo dõi thao tác, chưa yêu cầu lưu receipt hoặc API tra cứu kết quả retry. Không nhận actorId/role từ body. API lấy user thật từ session.
+ID UUID, thời gian ISO 8601, JSON camelCase. `requestId` dùng để theo dõi. Đặt xe, parking và sạc có xử lý retry riêng. Không nhận actorId/role từ body. API lấy user thật từ session.
 
-## Route cần làm cùng feature
+## Route hiện có
 
-Các path dưới đây có tiền tố `/api`. `GET /health` và `GET /me` đã hoạt động. Route chưa có service nghiệp vụ trả 501 sau validation/Auth.
+Các path dưới đây có tiền tố `/api`.
 
 | Route | Chức năng |
 |---|---|
 | GET /hubs; GET /hubs/{id} | Public danh sách/chi tiết tài nguyên, không có lượt đặt của người khác |
 | GET /health | Đã chạy: 200 liveness, không kiểm tra DB |
 | GET /me | Đã chạy: id, role, hubIds=[]; chưa login trả 401. Operator không dùng hubIds để giới hạn Hub trong MVP |
-| GET /me/reservations; GET /me/trips | Dữ liệu của chính người dùng |
+| GET /me/reservations | Lượt đặt của chính Student. Trang chuyến đi đọc từ service phía server |
 | POST /vehicle-reservations | vehicleId, requestId → lượt đặt + mã nhận + hạn giữ xe |
 | POST /vehicle-reservations/{id}/cancel | requestId → lượt đã hủy |
 | POST /vehicle-reservations/{id}/pickup | pickupCode, requestId → kết quả simulator và trip |
 | POST /trips/{id}/return | hubId, slotId, requestId → kết quả simulator và trip |
+| GET /parking-reservations | Danh sách theo role, trạng thái và trang |
 | POST /parking-reservations | privateVehicleId, slotId, start, end, requestId → lịch đã đặt |
 | POST /parking-reservations/{id}/cancel | Hủy lịch của mình khi chưa check-in |
 | POST /operator/parking-events | ARRIVED/DEPARTED và reservationId → cập nhật lịch/chỗ |
-| POST /charging-requests | Xe, Hub, giờ rời dự kiến → yêu cầu chờ hoặc đã cấp cổng |
+| GET /charging-requests | Trạng thái sạc theo quyền và bộ lọc trạng thái |
+| POST /charging-requests | Xe, Hub, giờ rời dự kiến → yêu cầu chờ cấp cổng |
 | GET /operator/overview | Hub/tài nguyên, hàng đợi và số liệu tổng quan |
 | POST /operator/resources/{id}/status | Giả lập lỗi/khôi phục xe hoặc cổng, kiểm tra role |
 | POST /operator/charging/process | Cấp cổng còn trống theo ưu tiên |
 | POST /operator/charging/{id}/complete | Mô phỏng sạc xong và giải phóng cổng |
 | POST /operator/simulations | Input theo schema hiện tại → baseline/scenario + khuyến nghị |
 
-Login/logout đã dùng Supabase Auth; `/login` chuyển Student tới `/hubs`, Operator tới `/operator` khi session hợp lệ. Không thêm API Admin, receipt, device-command, tick, incident, draft, export hoặc history trong bản đầu. Input/output cụ thể của phần hỗ trợ chốt khi viết feature; không mở thêm endpoint chỉ để khớp toàn bộ class diagram.
+Login/logout đã dùng Supabase Auth; `/login` chuyển Student tới `/hubs`, Operator tới `/operator` khi session hợp lệ. Không thêm API Admin, receipt, device-command, tick, incident, draft, export hoặc history trong bản đầu.
 
 ## Đặt và hủy xe dùng chung
 
-Áp migration 005 sau 004 trước khi triển khai API đặt xe và API Hub dùng view khả dụng mới.
+API đặt xe và view xe khả dụng của Hub dùng migration 005.
 
 - `POST /api/vehicle-reservations` trả 201 khi tạo lượt. Cùng Student và requestId, gửi lại cùng vehicleId trả 200 với lượt cũ theo trạng thái hiện tại và hạn cũ. Dùng requestId đó cho xe khác trả 409 `REQUEST_ID_REUSED`.
 - `GET /api/me/reservations` trả `data.reservations` của chính Student, mới nhất trước. DTO lượt đặt có mã xe, tên Hub, ID và mã chỗ nhận. Chỉ có `pickupCode` khi lượt vẫn còn hiệu lực. Nếu đã nhận xe, `tripId` và `tripStatus` lấy từ chuyến tương ứng.
@@ -43,11 +45,13 @@ Login/logout đã dùng Supabase Auth; `/login` chuyển Student tới `/hubs`, 
 
 ## Nhận và trả
 
-Kết quả thành công giữ `{command, trip}` theo DTO hiện có; command chỉ là kết quả giả lập của request, không cần bảng riêng. Thất bại trả lỗi và không thay đổi reservation/trip/tài nguyên. MVP không trả 202 hoặc poll ACK. Không cho Student tự chọn kết quả thành công của thiết bị; mô phỏng lỗi do cấu hình demo phía server/Operator điều khiển khi triển khai.
+Kết quả thành công giữ `{command, trip}` theo DTO hiện có; command chỉ là kết quả giả lập của request, không cần bảng riêng. Thất bại trả lỗi và không thay đổi reservation/trip/tài nguyên. MVP không trả 202 hoặc poll ACK. Kết quả thiết bị do server xác định.
 
 ## What-if
 
-Giữ hubIds, demandMultiplier, failedChargingPoints, projectedArrivals, arrivalHubId, horizonMinutes và seed để không đổi form/schema khi các bạn bắt đầu. horizon là khoảng ước lượng; chưa cần engine chạy theo từng bước thời gian. projectedArrivals là số xe dự kiến đến; khi lớn hơn 0, arrivalHubId bắt buộc và phải thuộc hubIds. So sánh số xe đến với chỗ FLEET trống tại Hub đó để phát hiện xe vượt sức chứa. Kết quả mỗi Hub có `isFleetFull`, `parkedVehicleCount` và `hasMostParkedVehicles` để phân biệt Hub đầy với Hub có nhiều xe nhất trong các Hub được chọn. Trả số xe/chỗ/cổng thiếu và gợi ý theo quy tắc được mô tả tại mục 04. Không yêu cầu lưu run hoặc API chạy lại từ lịch sử.
+Input gồm `hubIds`, `demandMultiplier`, `failedChargingPoints`, `projectedArrivals`, `arrivalHubId`, `horizonMinutes` và `seed`. Khi có xe dự kiến đến, Hub đích phải thuộc danh sách đã chọn. Engine là hàm tất định trên snapshot. Thời lượng dùng để quy đổi nhu cầu mẫu, 4 lượt xe và 1 lượt sạc mỗi Hub mỗi giờ. `seed` được giữ trong hợp đồng và hiện không ảnh hưởng kết quả.
+
+Kết quả mỗi Hub có `isFleetFull`, `parkedVehicleCount` và `hasMostParkedVehicles`. Xe vượt sức chứa là số xe đến vượt chỗ FLEET trống. Xe dự kiến đến chỉ thêm ở Hub đích, giữ nguyên số xe tại các Hub khác. Đề xuất điều phối giới hạn theo xe dư và chỗ trống. Kết quả tính toán được trả trong cùng request, chưa có lưu lịch sử hoặc API chạy lại.
 
 ## Bổ sung parking
 

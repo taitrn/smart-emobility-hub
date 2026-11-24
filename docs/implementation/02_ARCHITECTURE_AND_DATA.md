@@ -6,9 +6,9 @@ Giữ cấu trúc code hiện tại: Next.js App Router → Route Handler → se
 
 UI có thể làm song song với fixture chỉ đọc; khi ghép feature, thao tác phải dùng cùng dữ liệu server. Không lưu trạng thái dùng chung trong biến của Vercel Function.
 
-## Dữ liệu nền và phần sẽ triển khai
+## Dữ liệu
 
-Migration 001 đã tạo app_users, mobility_hubs, shared_vehicles, parking_spaces, charging_points và private_vehicles. Bảng parking_reservations đã được tạo bởi migration 002 (bổ sung cột request_id ở 004). Ba bảng vehicle_reservations, trips và charging_sessions chưa tạo; chúng đi cùng feature.
+Migration 001 tạo profile và tài nguyên. Migration 002/004 tạo và cập nhật parking; 005 tạo lượt đặt xe/chuyến đi, 006/007 bổ sung giao dịch nhận/trả. Migration 008 cung cấp snapshot What-if và 009 tạo phiên sạc.
 
 | Bảng | Nội dung chính |
 |---|---|
@@ -27,13 +27,13 @@ UUID là ID, mã H01/EV01 để hiển thị. Giờ lưu UTC và hiển thị UT
 
 ## Ghi dữ liệu và quyền
 
-- Supabase Auth email/password cho vài tài khoản demo, role được gán bằng công cụ quản trị; browser/server client đã có trong scaffold.
-- RLS nền đã bật; các bảng nghiệp vụ sắp tạo phải bổ sung policy riêng. Quyền đọc dự kiến: thông tin Hub/tài nguyên được đọc công khai ở mức cần hiển thị; lượt đặt/chuyến là của chính Student; Operator demo thao tác tài nguyên. Không xuất mã nhận hoặc dữ liệu người dùng trong Hub DTO.
+- Supabase Auth dùng email/password. Người quản trị gán role Operator trong profile.
+- Thông tin Hub/tài nguyên được đọc công khai qua DTO giới hạn. RLS bảo vệ lượt đặt/chuyến theo chủ sở hữu; các RPC vận hành kiểm tra quyền Operator. Không xuất mã nhận hoặc dữ liệu người dùng trong Hub DTO.
 - Kiểm tra session/role ở server trước thao tác. Không dùng secret key trong browser, không nhận role từ request.
 - Đặt xe, nhận/trả và đặt chỗ đỗ cần cập nhật dữ liệu nhất quán. Dùng transaction/RPC nhỏ cho đúng thao tác nhiều bảng; không dựng một framework command hoặc ép mọi GET/UPDATE thành RPC.
 - Dùng ràng buộc unique cho lượt đặt xe đang được giữ; chặn overlap parking bằng constraint hoặc transaction tương ứng. Kiểm tra lại điều kiện trong transaction, không chỉ disable nút UI.
 - RPC có quyền nâng cao phải tự kiểm tra user/role và hạn chế EXECUTE; chỉ viết khi cần. RLS không tự thay thế việc kiểm tra trong hàm đặc quyền.
-- Chưa làm receipt chống retry tổng quát: UI khóa nút khi gửi; server vẫn kiểm tra trạng thái/unique để bấm lại không tạo thêm trip hoặc đặt trùng. `requestId` hiện là mã theo dõi lỗi, không phải bảo đảm exactly-once, trừ đặt chỗ parking: POST /parking-reservations idempotent theo cặp (owner_id, request_id), cùng payload trả lại lượt đã đặt.
+- Chưa làm receipt chống retry tổng quát: UI khóa nút khi gửi; server vẫn kiểm tra trạng thái/unique để bấm lại không tạo thêm trip hoặc đặt trùng. Đặt xe, đặt chỗ và đăng ký sạc có xử lý retry theo người gửi và payload. Các thao tác còn lại dựa trên kiểm tra trạng thái và ràng buộc giao dịch.
 
 ## Mô phỏng và triển khai
 

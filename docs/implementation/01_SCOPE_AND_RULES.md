@@ -35,7 +35,7 @@ Dashboard và sạc là phần hỗ trợ cần demo, không được bỏ chỉ
 - Parking: CONFIRMED → CHECKED_IN → COMPLETED hoặc CANCELLED.
 - Sạc: WAITING → CHARGING → COMPLETED.
 
-Các union khác còn trong scaffold chỉ phục vụ tương thích thiết kế, không bắt buộc hiện thực tất cả trạng thái. Khi chốt mỗi feature, giữ lại đúng những trạng thái sử dụng.
+Một số kiểu dữ liệu còn giữ trạng thái từ thiết kế mở rộng. Bảng trên ghi các luồng dùng trong demo.
 
 ## Để sau
 

@@ -1,34 +1,18 @@
-# Cấu hình Auth và dữ liệu nền
+# Cấu hình Auth và dữ liệu demo
 
-Project chung đã có schema, seed và tài khoản; các bước tạo bên dưới chỉ dành cho quản trị project mới. Thành viên không chạy lại migration trên project chung. Kiểm tra Auth, session/role và RLS đã được thực hiện local/production; các feature chưa triển khai vẫn cần kiểm thử riêng.
+Các bước dưới đây dành cho quản trị project. Thành viên dùng env và tài khoản được cấp theo [SETUP](SETUP.md).
 
-## 1. Áp dụng SQL
+## 1. Áp schema và seed
 
-Trong Supabase của nhóm, mở SQL Editor → New query. Lần lượt chạy:
+1. Trên project trống, chạy từng file trong [supabase/migrations](../supabase/migrations) theo thứ tự 001–009, mỗi file một lần. Trên project đang dùng, chỉ chạy migration chưa áp. Kiểm tra kết quả từng file trước khi chuyển sang file kế tiếp.
+2. Chạy [supabase/seed.sql](../supabase/seed.sql) để thêm tài nguyên demo. Seed bỏ qua dòng đã có. Với project chung đã có dữ liệu nền, nếu chỉ cần bổ sung EV07 và hai chỗ ở H01 thì chạy riêng khối `Classroom demo` trong một transaction.
+3. Chạy các file trong [supabase/tests](../supabase/tests) trên database thử đã áp schema và seed. Fixture được rollback cuối mỗi script.
 
-1. `supabase/migrations/001_auth_and_resources.sql` (chạy một lần trên project mới).
-2. `supabase/seed.sql` (có thể chạy lại, không ghi đè dữ liệu đang có).
-3. `supabase/migrations/002_parking.sql`: chỉ áp một lần sau khi UC05 được review. Project chung đã có 001 nên không chạy lại 001.
-4. `supabase/migrations/003_revoke_rls_auto_enable.sql`: ghi nhận thu hồi quyền function event trigger. Trên project chung đã chạy thủ công; lệnh có thể áp lại và bỏ qua khi function chưa tồn tại. Giữ nguyên function/trigger nếu có.
+Migration tạo cả bảng tài nguyên và bảng nghiệp vụ, cùng policy và grants tương ứng. Migration 003 thu hồi quyền gọi trực tiếp hàm tự bật RLS nếu hàm đó tồn tại. Giữ RLS và kiểm tra lỗi SQL trước khi thử lại.
 
-Chạy `supabase/tests/parking.sql` trên database thử sau migration; không chạy bộ fixture này trên project chung. Sau khi duyệt 002, quản trị thêm xe cá nhân mẫu với UUID Student thật theo mục 2, rồi thử /parking và /operator/parking. Phần revoke đã được người dùng xác nhận qua SQL Editor; không đồng nghĩa 002 đã được áp.
+## 2. Tạo tài khoản và xe cá nhân mẫu
 
-Migration tạo profile và năm bảng tài nguyên, RLS và grants tường minh. Migration 002 bổ sung lượt đặt parking; các bảng đặt xe/chuyến/sạc chưa tạo; chúng đi cùng feature. Không chạy migration vào database khác đang có dữ liệu mà chưa kiểm tra. Nếu báo lỗi, dừng và ghi lại thông báo; không tắt RLS để xử lý.
-
-Khi cập nhật feature parking đã có 002/003, chỉ review và áp `supabase/migrations/004_parking_review_fixes.sql` một lần. Migration giữ lượt đặt cũ, thêm retry theo request ID và API danh sách có giới hạn. Chạy `supabase/tests/parking_review.sql` ở database test đã seed tài nguyên; không chạy fixtures trên project chung. Không rerun 001/002/004 nếu đã áp.
-
-## 2. Tạo tài khoản demo
-
-Authentication → Users → Add user: tạo hai Student và một Operator bằng email hợp lệ do nhóm chọn, mật khẩu riêng, xác nhận email bằng công cụ quản trị. Không commit email đăng nhập/mật khẩu demo vào repo public. Profile mới mặc định STUDENT; user không thể tự gán role bằng metadata.
-
-Đọc danh sách để lấy ID thật:
-
-```sql
-select u.id, u.email, p.role
-from auth.users u join public.app_users p on p.id = u.id;
-```
-
-Đổi đúng một profile thành Operator trong SQL Editor (thay UUID trước khi chạy):
+Trong Supabase Authentication → Users, tạo Student và Operator với thông tin do nhóm quản lý. Profile mới có role `STUDENT`. Lấy ID của tài khoản được chọn làm Operator rồi gán role bằng SQL Editor:
 
 ```sql
 update public.app_users
@@ -36,32 +20,22 @@ set role = 'OPERATOR', display_name = 'Operator demo'
 where id = 'UUID_CUA_OPERATOR';
 ```
 
-Nếu cần tạo xe cá nhân mẫu, dùng ID của Student thực:
+Để demo parking, chọn UUID của một Student:
 
 ```sql
 insert into public.private_vehicles(owner_id, plate_number, battery_percent)
-values ('UUID_CUA_STUDENT', 'DEMO-01', 50);
+select id, 'DEMO-01', 50
+from public.app_users
+where id = 'UUID_CUA_STUDENT' and role = 'STUDENT'
+on conflict (plate_number) do nothing;
 ```
 
-## 3. URL và ứng dụng
+Nếu `DEMO-01` đã thuộc tài khoản khác, dùng biển demo khác và xác nhận Student thấy xe trong form parking. Giữ thông tin đăng nhập trong kênh riêng của nhóm.
 
-Supabase Authentication → URL Configuration: Site URL là URL Vercel của nhóm. Thêm `http://localhost:3000` và URL Vercel vào danh sách redirect được phép cho các luồng email sau này. Login email/password hiện chuyển đến route nội bộ cố định; chưa có sign-up/reset password.
+## 3. Cấu hình ứng dụng và thử session
 
-`.env.local` và Vercel cần hai biến trong `.env.example`; không cần secret key cho API người dùng. Sau khi đổi env Vercel, redeploy. Supabase client và Proxy dùng session user; kiểm tra quyền trong API và RLS.
+Cấu hình hai biến trong `.env.example` cho local/Vercel. Đặt Site URL trong Supabase Auth theo URL Vercel của nhóm. Đăng nhập email/password chuyển Student tới `/hubs` và Operator tới `/operator`.
 
-## 4. Xác minh
-
-- Login bằng Student: `/api/me` trả role STUDENT. `/reservations` mở được; `/operator` chuyển trang không có quyền.
-- Login bằng Operator: dashboard mở được; `/api/me` trả OPERATOR.
-- Logout: `/api/me` trả 401; trang riêng tư chuyển về login. Gửi API Operator bằng Student phải trả 403.
-- Trong cùng một tab: đăng nhập → đăng xuất → đăng nhập lại hoặc đổi tài khoản, lặp ba lần. Nút Đăng xuất phải luôn bấm được sau mỗi lần đăng nhập, không cần F5.
-- Khi đã đăng nhập, mở `/login` phải chuyển về `/hubs` (Student) hoặc `/operator` (Operator). Trang không có quyền hướng dẫn đăng xuất để đổi tài khoản.
-- UI đăng nhập sai không báo thành công; profile thiếu/migration lỗi phải báo rõ thay vì cấp role mặc định.
-- Chạy `supabase/tests/auth_rls.sql` trong SQL Editor sau migration để kiểm tra grants/RLS trên dữ liệu tạm rồi rollback. Đây không thay thế thử session đăng nhập thật.
-- Các API feature chưa triển khai vẫn trả 501 sau khi qua Auth; health chỉ kiểm tra app. Chưa có bằng chứng DB/deploy chỉ vì build xanh.
-
-## Component UI
-
-`src/components/ui` có Button, Input và Card dùng Tailwind, được dùng ở login. Đây là component nền của repo, chưa cài shadcn CLI/registry. Có thể bổ sung shadcn khi một feature cần component tương tác; tránh ghi đè các Supabase client đang dùng.
-
-Thứ tự deploy phiên fix: áp 004 thành công trước, sau đó mới merge/deploy code mới, rồi kiểm thử end-to-end. Không để code mới gọi parking_list khi database chưa có hàm này.
+- `/api/me` trả đúng role sau khi đăng nhập và 401 sau khi đăng xuất. Kiểm tra refresh và đổi tài khoản trong cùng tab.
+- Student bị chặn ở trang/API Operator. Operator không truy cập các trang dành riêng cho Student.
+- [Demo và kiểm thử](implementation/04_UI_AND_DEMO.md) ghi các luồng nghiệp vụ và kết quả đã xác minh.
