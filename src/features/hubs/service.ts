@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { HubListView } from "../../lib/domain/views.ts";
+import type { HubDetailView, HubListView } from "../../lib/domain/views.ts";
 import { AppError } from "../../lib/http/errors.ts";
 
 export const hubQuerySchema = z
@@ -31,10 +31,9 @@ async function resources(hubId?: string) {
       .match(scope("id"))
       .order("code"),
     db
-      .from("shared_vehicles")
-      .select("id,hub_id,code,vehicle_type,battery_percent,status")
+      .from("hub_shared_vehicles")
+      .select("id,hub_id,code,vehicle_type,battery_percent,status,is_bookable")
       .match(scope("hub_id"))
-      .eq("enabled", true)
       .order("code"),
     db
       .from("parking_spaces")
@@ -49,6 +48,13 @@ async function resources(hubId?: string) {
       .eq("enabled", true)
       .order("code"),
   ]);
+  if (vehicles.error?.code === "PGRST205") {
+    throw new AppError(
+      "DATABASE_UNAVAILABLE",
+      "Supabase chưa có dữ liệu khả dụng cho đặt xe. Kiểm tra migration 005.",
+      503,
+    );
+  }
   if ([hubs, vehicles, spaces, points].some((r) => r.error))
     throw new AppError(
       "DATABASE_UNAVAILABLE",
@@ -69,7 +75,7 @@ export async function listHubs(query: HubQuery): Promise<HubListView> {
   return summarizeHubs(await resources(), query);
 }
 
-export async function getHub(id: string) {
+export async function getHub(id: string): Promise<HubDetailView> {
   const data = await resources(id);
   const hub = data.hubs.find((h) => h.id === id);
   if (!hub) throw new AppError("NOT_FOUND", "Không tìm thấy Hub.", 404);
@@ -82,6 +88,7 @@ export async function getHub(id: string) {
       vehicleType: v.vehicle_type,
       batteryPercent: v.battery_percent,
       status: v.status,
+      isBookable: v.is_bookable,
     })),
     spaces: data.spaces.map((s) => ({
       id: s.id,
