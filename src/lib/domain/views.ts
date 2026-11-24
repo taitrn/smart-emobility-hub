@@ -65,12 +65,18 @@ export type SimulationRunView = {
     seed: number;
   };
   baselineAsOf: string;
+  charging: { before: number; after: number; demandBefore: number; demandAfter: number };
   startedAt: string;
   finishedAt?: string;
   durationMs?: number;
   failure?: string;
   hubMetrics: {
     hubId: string;
+    parkedBefore: number;
+    spacesBefore: number;
+    spacesAfter: number;
+    demandBefore: number;
+    demandAfter: number;
     isFleetFull: boolean;
     parkedVehicleCount: number;
     hasMostParkedVehicles: boolean;
