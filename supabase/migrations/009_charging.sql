@@ -101,7 +101,7 @@ begin
       from public.mobility_hubs
       where id=requested_hub;
     if hub.id is null then raise exception 'NOT_FOUND'; end if;
-    if hub.status distinct from 'ACTIVE' then raise exception 'HUB_MAINTENANCE'; end if;
+    if hub.status is distinct from 'ACTIVE' then raise exception 'HUB_MAINTENANCE'; end if;
 
     if p_payload->>'vehicleKind'='SHARED' then
       select * into shared
@@ -110,7 +110,7 @@ begin
         for update;
       if shared.id is null then raise exception 'NOT_FOUND'; end if;
       if shared.hub_id<>requested_hub then raise exception 'OWNERSHIP_REQUIRED'; end if;
-      if shared.status distinct from 'AVAILABLE' or not shared.enabled then
+      if shared.status is distinct from 'AVAILABLE' or not shared.enabled then
         raise exception 'VEHICLE_INELIGIBLE';
       end if;
       if exists(
@@ -212,7 +212,7 @@ begin
       where id=(p_payload->>'sessionId')::uuid
       for update;
     if session.id is null then raise exception 'NOT_FOUND'; end if;
-    if session.status distinct from 'CHARGING' then raise exception 'INVALID_STATE'; end if;
+    if session.status is distinct from 'CHARGING' then raise exception 'INVALID_STATE'; end if;
 
     select * into point
       from public.charging_points
