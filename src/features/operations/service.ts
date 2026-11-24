@@ -16,7 +16,6 @@ function requireOperator(actor: Actor) {
   }
 }
 
-// TODO [Ân, Toàn hỗ trợ — đề xuất]: summarize Hubs/assets and add simulated fault controls.
 export async function getOperatorOverview(actor: Actor) {
   requireOperator(actor);
   const overview = await listHubs({});

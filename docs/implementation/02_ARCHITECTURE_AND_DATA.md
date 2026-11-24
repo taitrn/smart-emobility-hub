@@ -8,7 +8,7 @@ UI có thể làm song song với fixture chỉ đọc; khi ghép feature, thao 
 
 ## Dữ liệu nền và phần sẽ triển khai
 
-Migration 001 đã tạo app_users, mobility_hubs, shared_vehicles, parking_spaces, charging_points và private_vehicles. Bốn bảng vehicle_reservations, trips, parking_reservations và charging_sessions chưa tạo; chúng đi cùng feature.
+Migration 001 đã tạo app_users, mobility_hubs, shared_vehicles, parking_spaces, charging_points và private_vehicles. Bảng parking_reservations đã được tạo bởi migration 002 (bổ sung cột request_id ở 004). Ba bảng vehicle_reservations, trips và charging_sessions chưa tạo; chúng đi cùng feature.
 
 | Bảng | Nội dung chính |
 |---|---|
@@ -33,7 +33,7 @@ UUID là ID, mã H01/EV01 để hiển thị. Giờ lưu UTC và hiển thị UT
 - Đặt xe, nhận/trả và đặt chỗ đỗ cần cập nhật dữ liệu nhất quán. Dùng transaction/RPC nhỏ cho đúng thao tác nhiều bảng; không dựng một framework command hoặc ép mọi GET/UPDATE thành RPC.
 - Dùng ràng buộc unique cho lượt đặt xe đang được giữ; chặn overlap parking bằng constraint hoặc transaction tương ứng. Kiểm tra lại điều kiện trong transaction, không chỉ disable nút UI.
 - RPC có quyền nâng cao phải tự kiểm tra user/role và hạn chế EXECUTE; chỉ viết khi cần. RLS không tự thay thế việc kiểm tra trong hàm đặc quyền.
-- Chưa làm receipt chống retry tổng quát: UI khóa nút khi gửi; server vẫn kiểm tra trạng thái/unique để bấm lại không tạo thêm trip hoặc đặt trùng. `requestId` hiện là mã theo dõi lỗi, không phải bảo đảm exactly-once.
+- Chưa làm receipt chống retry tổng quát: UI khóa nút khi gửi; server vẫn kiểm tra trạng thái/unique để bấm lại không tạo thêm trip hoặc đặt trùng. `requestId` hiện là mã theo dõi lỗi, không phải bảo đảm exactly-once, trừ đặt chỗ parking: POST /parking-reservations idempotent theo cặp (owner_id, request_id), cùng payload trả lại lượt đã đặt.
 
 ## Mô phỏng và triển khai
 

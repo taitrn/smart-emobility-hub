@@ -1,11 +1,11 @@
 # Việc của nhóm
 
-Mục tiêu: triển khai và demo MVP theo [phạm vi](implementation/01_SCOPE_AND_RULES.md). Các feature service vẫn là stub. Nền Auth/data đã ghép và kiểm tra local/production. Thành viên chỉ cần cấu hình env và tài khoản được cấp. Các nhánh feature đã được tạo; PR về main theo [CONTRIBUTING](CONTRIBUTING.md).
+Mục tiêu: triển khai và demo MVP theo [phạm vi](implementation/01_SCOPE_AND_RULES.md). UC01 và UC05 đã triển khai; các feature còn lại vẫn là stub. Nền Auth/data đã ghép và kiểm tra local/production. Thành viên chỉ cần cấu hình env và tài khoản được cấp. Các nhánh feature đã được tạo; PR về main theo [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Tài — nền dùng chung và UC01
 
 - [x] `supabase/`, `src/lib/supabase/`, `src/lib/auth/require-actor.ts`, trang login: Auth demo, profile/role, RLS, seed Hub/tài nguyên và kiểm tra quyền cơ bản.
-- [ ] `src/features/hubs/service.ts`, `/api/hubs`, trang hubs: list/detail, pin, chỗ/cổng và loading/error.
+- [x] `src/features/hubs/service.ts`, `/api/hubs`, trang hubs: list/detail, pin, chỗ/cổng và loading/error.
 - [x] Nối Vercel, áp migration/seed và kiểm tra Auth/RLS nền.
 - [ ] Ghép PR nghiệp vụ, chuẩn bị seed theo từng feature và chuỗi demo đầy đủ.
 
@@ -26,8 +26,8 @@ Mục tiêu: triển khai và demo MVP theo [phạm vi](implementation/01_SCOPE_
 
 ## Tài tổng hợp — UC05
 
-- [ ] `src/features/reservations/parking.ts`, API/trang parking: đặt/hủy theo giờ; kiểm tra khoảng giờ và overlap.
-- [ ] Mô phỏng đến/rời cập nhật occupancy đúng; không làm phạt no-show tự động.
+- [x] `src/features/reservations/parking.ts`, API/trang parking: đặt/hủy theo giờ; kiểm tra khoảng giờ và overlap.
+- [x] Mô phỏng đến/rời cập nhật occupancy đúng; không làm phạt no-show tự động.
 
 ## Việt Anh — UC11
 

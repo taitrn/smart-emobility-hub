@@ -19,20 +19,20 @@ npm ci
 npm run dev
 ```
 
-Mở <http://localhost:3000>. Khi repo còn private, tài khoản clone cần được cấp quyền. Không cần Supabase để xem trang public; trang Student/Operator cần env và tài khoản demo.
+Mở <http://localhost:3000>. Không cần Supabase để xem trang public; trang Student/Operator cần env và tài khoản demo.
 
 Để chạy Auth, copy `.env.example` thành `.env.local`, điền URL/publishable key của project demo. Xem [setup Supabase và Vercel](docs/SETUP.md). Không commit `.env.local` hoặc mật khẩu.
 
 ## Phạm vi scaffold
 
 - Next.js **16.4.6**, React **19.3.1**, TypeScript, Tailwind CSS **4.3.5**; dependency cụ thể trong `package-lock.json`.
-- Shell và placeholder: Hub, lượt đặt, chuyến đi, parking, charging, Operator/What-if; trang Admin ghi chưa hỗ trợ.
+- Hub (UC01) và parking (UC05) đã triển khai; shell/placeholder cho lượt đặt xe, chuyến đi, charging, Operator/What-if; trang Admin ghi chưa hỗ trợ.
 - API và service có chữ ký/TODO sẵn cho sáu UC chính, sạc và dashboard. Các feature service chưa làm trả `501 NOT_IMPLEMENTED` sau khi qua kiểm tra quyền.
 - Config dùng chung, types/DTO, Zod input schemas, JSON error mapping và Supabase client factories.
 - `GET /api/health` kiểm tra app đang chạy, không kiểm tra database.
 - GitHub Actions một job: cài dependency, lint, typecheck, contract tests và build. Không cần cloud secret cho CI. Vercel đã nối GitHub và triển khai từ `main`.
 
-**Nền Auth/data đã chạy trên local và [production](https://smart-emobility-hub.vercel.app).** Đã kiểm tra login/logout, refresh, đổi tài khoản, chuyển hướng `/login`, role Student/Operator và RLS. Project chung đã có migration/seed và tài khoản demo. Thành viên lấy env/tài khoản riêng từ Tài; không chạy lại SQL trên project chung. [AUTH_SETUP](docs/AUTH_SETUP.md) dành cho quản trị project mới. Các use case nghiệp vụ vẫn là stub.
+**Nền Auth/data đã chạy trên local và [production](https://smart-emobility-hub.vercel.app).** Đã kiểm tra login/logout, refresh, đổi tài khoản, chuyển hướng `/login`, role Student/Operator và RLS. Project chung đã có migration/seed và tài khoản demo. Thành viên lấy env/tài khoản riêng từ Tài; không chạy lại SQL trên project chung. [AUTH_SETUP](docs/AUTH_SETUP.md) dành cho quản trị project mới. UC01 và UC05 đã triển khai; các use case còn lại vẫn là stub.
 
 ## Nhận việc
 
@@ -49,7 +49,7 @@ Mở <http://localhost:3000>. Khi repo còn private, tài khoản clone cần đ
 | Sạc | Việt Anh (đề xuất), Tài hỗ trợ | `src/features/charging`, `src/app/api/charging-requests` |
 | Dashboard/sự cố | Ân (đề xuất), Toàn hỗ trợ | `src/features/operations`, `src/app/api/operator/overview` |
 
-Sáu UC chính đã có service stub để owner điền; xem checklist để biết đúng file. Phân công phần hỗ trợ vẫn là đề xuất, chưa ghi nhận từng thành viên nhận việc. Auth/data đã ghép vào `main`; các bạn triển khai feature trên nền đó.
+UC01 và UC05 đã triển khai; các UC còn lại có service stub để owner điền; xem checklist để biết đúng file. Phân công phần hỗ trợ vẫn là đề xuất, chưa ghi nhận từng thành viên nhận việc. Auth/data đã ghép vào `main`; các bạn triển khai feature trên nền đó.
 
 ```sh
 git fetch origin
