@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState, useSyncExternalStore, type FormEvent } from "react";
 import { createClient } from "@/lib/supabase/browser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,13 +9,22 @@ import { Brand } from "@/components/brand";
 import { Icon } from "@/components/ui/icon";
 import { PageHeading } from "@/components/ui/workspace";
 
+const subscribe = () => () => {};
+
 export function LoginForm() {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  // Keep the server-rendered form inert until React can handle submission.
+  const hydrated = useSyncExternalStore(subscribe, () => true, () => false);
+  const disabled = !hydrated || busy;
+
   async function login(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setBusy(true); setMessage("");
+    event.preventDefault();
+    if (disabled) return;
     const form = new FormData(event.currentTarget);
+    setBusy(true);
+    setMessage("");
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithPassword({ email: String(form.get("email")).trim(), password: String(form.get("password")) });
@@ -46,11 +55,11 @@ export function LoginForm() {
         <div className="w-full max-w-sm space-y-5">
           <PageHeading title="Đăng nhập" description="Sử dụng tài khoản demo do nhóm cung cấp." />
           <Card>
-            <form onSubmit={login} className="space-y-4">
-              <label className="app-field">Email<Input name="email" type="email" autoComplete="username" required disabled={busy} /></label>
-              <label className="app-field">Mật khẩu<Input name="password" type="password" autoComplete="current-password" required disabled={busy} /></label>
+            <form method="post" onSubmit={login} className="space-y-4">
+              <label className="app-field">Email<Input name="email" type="email" autoComplete="username" required disabled={disabled} /></label>
+              <label className="app-field">Mật khẩu<Input name="password" type="password" autoComplete="current-password" required disabled={disabled} /></label>
               {message && <p role="alert" className="app-error">{message}</p>}
-              <Button disabled={busy} className="w-full">{busy ? "Đang đăng nhập…" : "Đăng nhập"}</Button>
+              <Button disabled={disabled} className="w-full">{busy ? "Đang đăng nhập…" : "Đăng nhập"}</Button>
             </form>
           </Card>
         </div>
