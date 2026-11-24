@@ -5,10 +5,7 @@ import { AppError } from "@/lib/http/errors";
 
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage({ searchParams }: PageProps<"/login">) {
-  const params = await searchParams;
-  if ("password" in params) redirect("/login");
-
+export default async function LoginPage() {
   let destination: string | undefined;
   try {
     const actor = await requireActor(["STUDENT", "OPERATOR"]);
@@ -20,5 +17,5 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
     if (error.status !== 401 && error.status !== 503) throw error;
   }
   if (destination) redirect(destination);
-  return <LoginForm error={typeof params.error === "string" ? params.error : undefined} />;
+  return <LoginForm />;
 }

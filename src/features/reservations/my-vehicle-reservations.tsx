@@ -120,7 +120,12 @@ function HoldDetails({ reservation, remaining, justPlaced, onCancel }: {
           )}
           <button type="button" className={`${secondaryAction} w-full`} onClick={onCancel}>Hủy đặt xe</button>
         </ReservationCard>
-        <Link href={`/hubs/${reservation.hubId}`} className={`${primaryAction} w-full`}>Xem Hub nhận xe</Link>
+        {reservation.pickupCode && (
+          <Link href={`/reservations/${reservation.id}/pickup`} className={`${primaryAction} w-full`}>
+            Nhận xe
+          </Link>
+        )}
+        <Link href={`/hubs/${reservation.hubId}`} className={`${secondaryAction} w-full`}>Xem Hub nhận xe</Link>
       </div>
     </div>
   );
