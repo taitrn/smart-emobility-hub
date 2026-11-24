@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { ReservationIcon } from "@/features/reservations/reservation-ui";
+import { Icon } from "@/components/ui/icon";
 import { createClient } from "@/lib/supabase/browser";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { AuthStatus } from "./auth-status";
+import { Brand } from "./brand";
 
 const commonNavigation = [
   ["/", "Trang chủ", "home"],
@@ -63,18 +64,6 @@ function useShellRole() {
   return role;
 }
 
-export function Brand() {
-  return (
-    <Link href="/" className="flex w-fit items-center gap-2.5">
-      <span className="grid size-8 place-items-center rounded-lg bg-[#153f34]"><ReservationIcon name="bolt" /></span>
-      <span className="text-sm font-bold text-[#153f34]">
-        E-Mobility
-        <span className="block text-xs font-normal text-[#546a60]">VNU-HCM - Smart Hub</span>
-      </span>
-    </Link>
-  );
-}
-
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const role = useShellRole();
@@ -97,14 +86,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="mb-4 lg:mb-6 lg:px-2"><Brand /></div>
         {role && (
           <div className="mb-7 hidden items-center gap-3 rounded-lg bg-[#e6f2ec] px-3 py-2.5 text-sm font-semibold text-[#117052] lg:flex">
-            <ReservationIcon name="student" /> {operator ? "Người vận hành" : "Sinh viên"}
+            <Icon name="student" /> {operator ? "Người vận hành" : "Sinh viên"}
           </div>
         )}
         <nav aria-label={operator ? "Điều hướng vận hành" : role ? "Điều hướng sinh viên" : "Điều hướng chính"} className="flex flex-wrap gap-1 lg:grid lg:gap-1.5">
           {navigation.map(([href, label, icon]) => (
             <Link key={href} href={href} aria-current={active?.[0] === href ? "page" : undefined}
               className="flex min-h-10 items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-[#f4faf7] aria-[current=page]:bg-[#e6f2ec] aria-[current=page]:font-semibold aria-[current=page]:text-[#117052] lg:gap-3.5 lg:px-3">
-              <ReservationIcon name={icon} /> {label}
+              <Icon name={icon} /> {label}
             </Link>
           ))}
         </nav>

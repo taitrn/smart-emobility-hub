@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { Icon } from "@/components/ui/icon";
+import { PageHeading } from "@/components/ui/workspace";
 import { SHARED_CONFIG } from "@/config/shared";
 import type { HubDetailView, HubListView, VehicleReservationView } from "@/lib/domain/views";
 import {
@@ -16,8 +18,6 @@ import {
   primaryAction,
   ReservationCard,
   ReservationError,
-  ReservationHeading,
-  ReservationIcon,
   reservationGrid,
   secondaryAction,
   SummaryRow,
@@ -39,7 +39,7 @@ function HubChooser() {
 
   return (
     <section className="max-w-[784px] space-y-5">
-      <ReservationHeading title="Chọn Hub để đặt xe" description="Xem số xe sẵn sàng tại từng Hub." />
+      <PageHeading title="Chọn Hub để đặt xe" description="Xem số xe sẵn sàng tại từng Hub." />
       {loading && <p role="status" className="text-sm text-[#546a60]">Đang tải danh sách Hub…</p>}
       {error && <ReservationError message={error} onRetry={reload} />}
       {data?.hubs.length === 0 && <ReservationCard>Chưa có Hub.</ReservationCard>}
@@ -51,7 +51,7 @@ function HubChooser() {
               <li key={hub.id}>
                 <ReservationCard className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-start gap-3">
-                    <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[#e6f2ec]"><ReservationIcon name="pin" /></span>
+                    <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[#e6f2ec]"><Icon name="pin" /></span>
                     <div>
                       <h2 className="font-bold text-[#153f34]">{hub.name}</h2>
                       <p className="text-sm text-[#546a60]">
@@ -135,7 +135,7 @@ function VehiclePicker({ hubId }: { hubId: string }) {
 
   if (!data) return (
     <section className="space-y-5">
-      <ReservationHeading title="Chọn xe đặt" />
+      <PageHeading title="Chọn xe đặt" />
       {loading && <p role="status" className="text-sm text-[#546a60]">Đang tải xe tại Hub…</p>}
       {error && <ReservationError message={error} onRetry={reload} />}
       <Link href="/reservations/new" className={secondaryAction}>Đổi Hub</Link>
@@ -145,7 +145,7 @@ function VehiclePicker({ hubId }: { hubId: string }) {
   if (confirming && selected) {
     return (
       <section className="space-y-5">
-        <ReservationHeading title={`Xác nhận đặt xe ${selected.code}`} description={`Kiểm tra thông tin trước khi giữ xe trong ${holdMinutes} phút.`} />
+        <PageHeading title={`Xác nhận đặt xe ${selected.code}`} description={`Kiểm tra thông tin trước khi giữ xe trong ${holdMinutes} phút.`} />
         <div className={reservationGrid}>
           <ReservationCard><VehicleSummary vehicle={selected} hubName={data.hub.name} /></ReservationCard>
           <ReservationCard className="space-y-3.5">
@@ -176,7 +176,7 @@ function VehiclePicker({ hubId }: { hubId: string }) {
   return (
     <section className={reservationGrid}>
       <div className="min-w-0 space-y-5">
-        <ReservationHeading title="Chọn xe đặt" description="Chọn một xe sẵn sàng tại Hub rồi kiểm tra thông tin trước khi xác nhận." />
+        <PageHeading title="Chọn xe đặt" description="Chọn một xe sẵn sàng tại Hub rồi kiểm tra thông tin trước khi xác nhận." />
         {(problem || error) && <ReservationError message={problem || error} onRetry={error ? reload : undefined} />}
         <ReservationCard className="space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -189,7 +189,7 @@ function VehiclePicker({ hubId }: { hubId: string }) {
           <ul className="flex flex-wrap gap-x-6 gap-y-2 text-[13px]/5 text-[#546a60]">
             {stats.map(({ icon, count, label }) => (
               <li key={icon} className="flex items-center gap-1.5">
-                <ReservationIcon name={icon} /><b className="text-[#153f34]">{count}</b> {label}
+                <Icon name={icon} /><b className="text-[#153f34]">{count}</b> {label}
               </li>
             ))}
           </ul>

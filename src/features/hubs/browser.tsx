@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
+import { Icon } from "@/components/ui/icon";
 import { PageHeading, StatusBadge } from "@/components/ui/workspace";
-import { ReservationIcon } from "@/features/reservations/reservation-ui";
 import { useEffect, useState, type FormEvent } from "react";
 import type { HubDetailView, HubListView } from "@/lib/domain/views";
 export function HubBrowser({ initialHubId = "" }: { initialHubId?: string }) {
@@ -121,7 +121,7 @@ export function HubBrowser({ initialHubId = "" }: { initialHubId?: string }) {
               {data?.hubs.map((h) => (
                 <article key={h.id} className="app-surface flex flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[#e6f2ec]"><ReservationIcon name="pin" /></span>
+                    <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[#e6f2ec]"><Icon name="pin" /></span>
                     <div>
                       <h2 className="app-subtitle">{h.name}</h2>
                       <p className="app-muted">{h.code}</p>
