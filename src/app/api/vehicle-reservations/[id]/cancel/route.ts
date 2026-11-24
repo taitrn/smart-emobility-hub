@@ -9,9 +9,9 @@ export function POST(
   route: RouteContext<"/api/vehicle-reservations/[id]/cancel">,
 ) {
   return handleApi(async context => {
+    await requireActor(["STUDENT"]);
     const id = uuidSchema.parse((await route.params).id);
     await readJson(request, cancelVehicleSchema, context);
-    await requireActor(["STUDENT"]);
     return success(await cancelVehicle(id), context.requestId);
   });
 }

@@ -5,8 +5,8 @@ import { success } from "@/lib/http/response";
 
 export function POST(request: Request) {
   return handleApi(async context => {
-    const input = await readJson(request, reserveVehicleSchema, context);
     await requireActor(["STUDENT"]);
+    const input = await readJson(request, reserveVehicleSchema, context);
     const { reservation, created } = await reserveVehicle(input);
     return success(reservation, context.requestId, created ? 201 : 200);
   });

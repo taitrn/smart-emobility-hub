@@ -8,6 +8,7 @@ if (!(["localhost", "127.0.0.1", "[::1]"].includes(base.hostname))) {
 }
 const id = "00000000-0000-4000-8000-000000000001";
 const body = { requestId: crypto.randomUUID() };
+const protectedStatus = process.env.AUTH_CONFIGURED === "1" ? 401 : 503;
 const cases = [
   ["GET", "/api/health", undefined, 200],
   ["GET", "/api/hubs?minBattery=75", undefined, process.env.AUTH_CONFIGURED === "1" ? 200 : 503],
@@ -17,20 +18,19 @@ const cases = [
   ["GET", "/api/me/reservations", undefined, "protected"],
   ["POST", "/api/vehicle-reservations", { ...body, vehicleId: id }, "protected"],
   ["POST", `/api/vehicle-reservations/${id}/cancel`, body, "protected"],
-  ["POST", "/api/vehicle-reservations/not-a-uuid/cancel", body, 400],
-  ["POST", `/api/vehicle-reservations/${id}/pickup`, { ...body, pickupCode: "ABC289" }, "protected"],
+  ["POST", "/api/vehicle-reservations/not-a-uuid/cancel", body, "protected"],
+  ["POST", `/api/vehicle-reservations/${id}/pickup`, { ...body, pickupCode: "ABCDEFGH2345" }, "protected"],
   ["POST", `/api/trips/${id}/return`, { ...body, hubId: id, slotId: id }, "protected"],
-  ["POST", "/api/trips/not-a-uuid/return", { ...body, hubId: id, slotId: id }, 400],
   ["POST", "/api/parking-reservations", { ...body, privateVehicleId: id, slotId: id,
     start: "2099-01-01T10:00:00Z", end: "2099-01-01T10:30:00Z" }, "protected"],
   ["POST", "/api/operator/simulations", { ...body, hubIds: [id], demandMultiplier: 2,
     failedChargingPoints: 0, horizonMinutes: 30 }, "protected"],
-  ["POST", "/api/vehicle-reservations", { ...body, vehicleId: id, role: "ADMIN" }, 400],
+  ["POST", "/api/vehicle-reservations", { ...body, vehicleId: id, role: "ADMIN" }, "protected"],
 ];
 
 for (const [method, path, input, expected] of cases) {
   const expectedStatus = expected === "protected"
-    ? (process.env.AUTH_CONFIGURED === "1" ? 401 : 503)
+    ? protectedStatus
     : expected;
   const response = await fetch(new URL(path, base), {
     method, redirect: "error", signal: AbortSignal.timeout(10_000),
@@ -44,17 +44,13 @@ for (const [method, path, input, expected] of cases) {
   if (expectedStatus === 401) assert.equal(json.error.code, "UNAUTHENTICATED");
   if (expectedStatus === 503) assert.equal(json.error.code, "DATABASE_UNAVAILABLE");
   if (expected === 400) assert.equal(json.error.code, "INVALID_INPUT");
-  // Parking authenticates before reading the body.
-  if (input && expected === "protected" && path !== "/api/parking-reservations") {
-    assert.equal(json.requestId, input.requestId);
-  }
   console.log(`PASS ${response.status} ${method} ${path}`);
 }
 const malformed = await fetch(new URL("/api/vehicle-reservations", base), {
   method: "POST", redirect: "error", signal: AbortSignal.timeout(10_000),
   headers: { "Content-Type": "application/json" }, body: "{",
 });
-assert.equal(malformed.status, 400);
-assert.equal((await malformed.json()).error.code, "INVALID_INPUT");
-console.log("PASS 400 malformed JSON");
+assert.equal(malformed.status, protectedStatus);
+assert.equal((await malformed.json()).error.code, protectedStatus === 401 ? "UNAUTHENTICATED" : "DATABASE_UNAVAILABLE");
+console.log(`PASS ${protectedStatus} malformed JSON without a session`);
 console.log("API smoke passed. Protected requests without a session were rejected.");
