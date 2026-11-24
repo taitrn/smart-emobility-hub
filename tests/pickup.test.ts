@@ -9,12 +9,12 @@ import { simulatePickup } from "../src/features/rental/pickup-simulator.ts";
 function validInput(): PickupCheckInput {
   return {
     actorId: "student-1",
-    pickupCode: "ABCDEFGH2345",
+    pickupCode: "ABCD23",
     reservation: {
       ownerId: "student-1",
       status: "ACTIVE_HOLD",
       expiresAt: "2026-11-22T12:00:00Z",
-      pickupCode: "ABCDEFGH2345",
+      pickupCode: "ABCD23",
     },
     vehicle: {
       status: "RESERVED",

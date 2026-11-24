@@ -6,7 +6,7 @@ import type { RentalCommandResult } from "../../lib/domain/views.ts";
 import { AppError } from "../../lib/http/errors.ts";
 
 export const pickupSchema = mutationSchema.extend({
-  pickupCode: z.string().trim().toUpperCase().regex(/^[A-Z2-7]{12,64}$/),
+  pickupCode: z.string().trim().toUpperCase().regex(/^[A-HJ-NP-Z2-9]{6}$/),
 }).strict();
 
 export type PickupInput = z.infer<typeof pickupSchema>;

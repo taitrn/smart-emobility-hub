@@ -3,7 +3,7 @@
 -- Dependencies:
 -- 001_auth_and_resources.sql
 -- UC02: public.vehicle_reservations
--- UC04: public.trips
+-- UC02 also provides public.trips and the Student transaction lock.
 --
 -- Expected reservation columns:
 -- id, owner_id, vehicle_id, hub_id, pickup_code, expires_at, status
@@ -57,17 +57,18 @@ begin
 
   if p_reservation_id is null
      or p_pickup_code is null
-     or p_pickup_code !~ '^[A-Z2-7]{12,64}$' then
+     or p_pickup_code !~ '^[A-HJ-NP-Z2-9]{6}$' then
     raise exception using
       errcode = 'PT400',
       message = 'INVALID_INPUT';
   end if;
 
+  perform app_private.lock_vehicle_student();
+
   select *
   into v_reservation
   from public.vehicle_reservations
-  where id = p_reservation_id
-  for update;
+  where id = p_reservation_id;
 
   if not found then
     raise exception using
@@ -80,6 +81,12 @@ begin
       errcode = 'PT403',
       message = 'OWNERSHIP_REQUIRED';
   end if;
+
+  -- Use the same lock order as reserve/cancel: Student, vehicle, reservation.
+  select * into v_vehicle from public.shared_vehicles
+    where id = v_reservation.vehicle_id for update;
+  select * into v_reservation from public.vehicle_reservations
+    where id = p_reservation_id for update;
 
   if v_reservation.status is distinct from 'ACTIVE_HOLD' then
     raise exception using
@@ -102,13 +109,7 @@ begin
       message = 'RESERVATION_BLOCKED';
   end if;
 
-  select *
-  into v_vehicle
-  from public.shared_vehicles
-  where id = v_reservation.vehicle_id
-  for update;
-
-  if not found
+  if v_vehicle.id is null
      or v_vehicle.enabled is distinct from true
      or v_vehicle.status is distinct from 'RESERVED'
      or v_vehicle.hub_id is distinct from v_reservation.hub_id then
@@ -189,7 +190,7 @@ begin
   returning * into v_trip;
 
   update public.vehicle_reservations
-  set status = 'FULFILLED'
+  set status = 'FULFILLED', pickup_code = null
   where id = v_reservation.id;
 
   update public.shared_vehicles

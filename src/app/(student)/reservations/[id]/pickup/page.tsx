@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -93,9 +94,9 @@ export default function PickupPage() {
           id="pickup-code"
           value={pickupCode}
           onChange={(event) => setPickupCode(event.target.value.toUpperCase())}
-          minLength={12}
-          maxLength={64}
-          pattern="[A-Z2-7]{12,64}"
+          minLength={6}
+          maxLength={6}
+          pattern="[A-HJ-NP-Z2-9]{6}"
           autoComplete="off"
           required
           disabled={loading || tripId !== null}
@@ -108,7 +109,7 @@ export default function PickupPage() {
           disabled={
             loading ||
             tripId !== null ||
-            !/^[A-Z2-7]{12,64}$/.test(pickupCode.trim())
+            !/^[A-HJ-NP-Z2-9]{6}$/.test(pickupCode.trim())
           }
         >
           {loading
@@ -126,7 +127,7 @@ export default function PickupPage() {
 
         {tripId && (
           <p className="break-all text-sm text-slate-600">
-            Mã chuyến đi: {tripId}
+            <Link href="/trips" className="underline">Mở chuyến đi của tôi</Link>
           </p>
         )}
       </form>
