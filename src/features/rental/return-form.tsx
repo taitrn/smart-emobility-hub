@@ -1,4 +1,5 @@
 "use client";
+import { StatusBadge } from "@/components/ui/workspace";
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -48,33 +49,33 @@ export function ReturnForm({ tripId, hubs }: { tripId: string; hubs: ReturnHub[]
   if (completed) return <p role="status">Đã khóa xe và kết thúc chuyến.</p>;
 
   return <form onSubmit={submit} className="space-y-3">
-    <p className="font-medium">Đang trong chuyến</p>
+    <StatusBadge status="IN_USE" />
     <div className="grid gap-3 sm:grid-cols-2">
-      <label className="grid gap-1 text-sm">
+      <label className="app-field">
         Hub trả xe
         <select disabled={busy} value={hubId} onChange={event => {
           setHubId(event.target.value);
           setSlotId("");
           setError("");
-        }} className="rounded-lg border border-slate-300 p-2">
+        }} className="app-control">
           <option value="">Chọn Hub</option>
           {hubs.filter(hub => hub.status === "ACTIVE").map(hub => <option key={hub.id} value={hub.id}>
-            {hub.code} · {hub.name} ({hub.slots.length ? `${hub.slots.length} chỗ trống` : "đầy"})
+            {hub.code} - {hub.name} ({hub.slots.length ? `${hub.slots.length} chỗ trống` : "đầy"})
           </option>)}
         </select>
       </label>
-      <label className="grid gap-1 text-sm">
+      <label className="app-field">
         Chỗ FLEET
         <select disabled={busy || slots.length === 0} value={selectedSlot?.id ?? ""}
           onChange={event => setSlotId(event.target.value)}
-          className="rounded-lg border border-slate-300 p-2">
+          className="app-control">
           <option value="">Chọn chỗ đỗ</option>
           {slots.map(slot => <option key={slot.id} value={slot.id}>{slot.code}</option>)}
         </select>
       </label>
     </div>
     {hubId && slots.length === 0 && <p role="status" className="text-sm">Hub đã hết chỗ FLEET. Hãy chọn Hub khác.</p>}
-    {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+    {error && <p role="alert" className="app-error">{error}</p>}
     <Button disabled={busy || !selectedSlot}>{busy ? "Đang khóa xe…" : "Xác nhận trả xe"}</Button>
   </form>;
 }

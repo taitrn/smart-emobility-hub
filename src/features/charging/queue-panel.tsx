@@ -1,4 +1,5 @@
 "use client";
+import { PageHeading, StatusBadge } from "@/components/ui/workspace";
 
 import { useEffect, useState } from "react";
 import type { ChargingSessionView } from "@/lib/domain/views";
@@ -67,31 +68,31 @@ export function ChargingQueuePanel() {
 
   return (
     <section className="space-y-5">
-      <h1 className="text-3xl font-bold">Hàng đợi sạc</h1>
-      {notice && <p role="status" className="rounded bg-teal-50 p-3 text-teal-800">{notice}</p>}
-      {error && <p role="alert" className="rounded bg-red-50 p-3 text-red-700">{error}</p>}
-      <button onClick={() => void process()} disabled={busy} className="rounded bg-teal-700 px-4 py-2 text-white">
+      <PageHeading title="Hàng đợi sạc" description="Theo dõi lượt chờ, cấp cổng và hoàn tất phiên sạc." />
+      {notice && <p role="status" className="app-notice">{notice}</p>}
+      {error && <p role="alert" className="app-error">{error}</p>}
+      <button onClick={() => void process()} disabled={busy} className="app-action">
         Xử lý hàng đợi
       </button>
 
-      <h2 className="text-xl font-bold">Đang chờ</h2>
+      <h2 className="app-subtitle">Đang chờ</h2>
       {waiting.length === 0 && <p>Không có yêu cầu chờ.</p>}
       {waiting.map((session) => (
-        <article key={session.id} className="rounded border bg-white p-3">
-          <p className="font-bold">{session.priority} · {session.vehicleCode} · {session.hubCode}</p>
-          <p>Pin {session.batteryPercent}% · tạo lúc {new Date(session.createdAt).toLocaleString("vi-VN")}</p>
+        <article key={session.id} className="app-surface">
+          <p className="font-bold">{session.vehicleCode} - {session.hubCode} <StatusBadge status={session.priority} /></p>
+          <p>Pin {session.batteryPercent}% - tạo lúc {new Date(session.createdAt).toLocaleString("vi-VN")}</p>
         </article>
       ))}
 
-      <h2 className="text-xl font-bold">Đang sạc</h2>
+      <h2 className="app-subtitle">Đang sạc</h2>
       {charging.length === 0 && <p>Không có phiên đang sạc.</p>}
       {charging.map((session) => (
-        <article key={session.id} className="flex items-center justify-between rounded border bg-white p-3">
+        <article key={session.id} className="app-surface flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="font-bold">{session.vehicleCode} · {session.chargingPointCode}</p>
-            <p>Pin {session.batteryPercent}% · {session.hubName}</p>
+            <p className="font-bold">{session.vehicleCode} - {session.chargingPointCode} <StatusBadge status={session.status} /></p>
+            <p>Pin {session.batteryPercent}% - {session.hubName}</p>
           </div>
-          <button disabled={busy} onClick={() => void complete(session.id)} className="rounded bg-teal-700 px-3 py-2 text-white">
+          <button disabled={busy} onClick={() => void complete(session.id)} className="app-secondary">
             Hoàn tất
           </button>
         </article>

@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { OperatorDashboard } from "@/features/operations/dashboard";
+import { PageHeading } from "@/components/ui/workspace";
 
 export default function OperatorPage() {
-  return <div className="space-y-8">
-    <h1 className="text-3xl font-bold">Dashboard vận hành</h1>
+  return <div className="space-y-6">
+    <div className="flex flex-wrap items-start justify-between gap-4">
+      <PageHeading title="Tổng quan mạng lưới" description="Giám sát tài nguyên và xử lý sự cố tại các Mobility Hub." />
+      <Link href="/operator/simulations" className="app-action">Mô phỏng What-if</Link>
+    </div>
     <OperatorDashboard />
-    <nav aria-label="Chức năng vận hành" className="flex flex-wrap gap-4 text-sm font-semibold text-teal-800">
-      <Link href="/operator/parking" className="hover:underline">Parking →</Link>
-      <Link href="/operator/charging" className="hover:underline">Hàng đợi sạc →</Link>
-      <Link href="/operator/simulations" className="hover:underline">What-if →</Link>
-    </nav>
   </div>;
 }

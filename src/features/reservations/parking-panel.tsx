@@ -1,4 +1,5 @@
 "use client";
+import { PageHeading, StatusBadge } from "@/components/ui/workspace";
 import { useState, useEffect, useRef, type FormEvent } from "react";
 import {
   parkingInputToUtc,
@@ -116,23 +117,24 @@ export function ParkingPanel({ operator = false }: { operator?: boolean }) {
   }
   return (
     <section className="space-y-5">
-      <h1 className="text-3xl font-bold">
-        {operator ? "Mô phỏng đến/rời chỗ đỗ" : "Đặt chỗ đỗ cá nhân"}
-      </h1>
+      <PageHeading
+        title={operator ? "Vận hành chỗ đỗ" : "Đỗ xe cá nhân"}
+        description={operator ? "Theo dõi lượt đặt và mô phỏng xe đến hoặc rời Hub." : "Chọn xe cá nhân, vị trí và khoảng thời gian đỗ."}
+      />
       {notice && (
-        <p role="status" className="sticky top-2 z-10 rounded bg-teal-50 p-2 text-teal-800">
+        <p role="status" className="app-notice">
           {notice}
         </p>
       )}
       {error && (
-        <p role="alert" className="sticky top-2 z-10 rounded bg-red-50 p-2 text-red-700">
+        <p role="alert" className="app-error">
           {error}
         </p>
       )}
       {!data && !error && <p role="status">Đang tải…</p>}
       <button
         disabled={busy}
-        className="underline"
+        className="app-secondary"
         onClick={() => {
           setError("");
           setTick((v) => v + 1);
@@ -143,10 +145,10 @@ export function ParkingPanel({ operator = false }: { operator?: boolean }) {
       {data &&
         !operator &&
         (data.vehicles.length ? (
-          <form noValidate onSubmit={reserve} onChange={(e) => { const target = e.target; if ((target instanceof HTMLInputElement || target instanceof HTMLSelectElement) && target.name && target.value) setFieldErrors((errors) => ({ ...errors, [target.name]: "" })); }} className="grid gap-3 rounded border p-4">
-            <label>
+          <form noValidate onSubmit={reserve} onChange={(e) => { const target = e.target; if ((target instanceof HTMLInputElement || target instanceof HTMLSelectElement) && target.name && target.value) setFieldErrors((errors) => ({ ...errors, [target.name]: "" })); }} className="app-surface grid gap-4 sm:grid-cols-2">
+            <label className="app-field">
               Xe cá nhân
-              <select required name="vehicle" className="block border p-2">
+              <select required name="vehicle" className="app-control">
                 <option value="">Chọn xe</option>
                 {data.vehicles.map((v) => (
                   <option key={v.id} value={v.id}>
@@ -156,46 +158,46 @@ export function ParkingPanel({ operator = false }: { operator?: boolean }) {
               </select>
               {fieldErrors.vehicle && <span role="alert" className="text-red-700">{fieldErrors.vehicle}</span>}
             </label>
-            <label>
+            <label className="app-field">
               Chỗ PRIVATE
-              <select required name="slot" className="block border p-2">
+              <select required name="slot" className="app-control">
                 <option value="">Chọn chỗ đỗ</option>
                 {data.slots.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.code} · {s.occupancy_status}
+                    {s.code} - {s.occupancy_status}
                   </option>
                 ))}
               </select>
               {fieldErrors.slot && <span role="alert" className="text-red-700">{fieldErrors.slot}</span>}
             </label>
-            <label>
+            <label className="app-field">
               Bắt đầu
               <input
                 required
                 type="datetime-local"
                 name="start"
-                className="block border p-2"
+                className="app-control"
               />
               {fieldErrors.start && <span role="alert" className="text-red-700">{fieldErrors.start}</span>}
             </label>
-            <label>
+            <label className="app-field">
               Kết thúc
               <input
                 required
                 type="datetime-local"
                 name="end"
-                className="block border p-2"
+                className="app-control"
               />
               {fieldErrors.end && <span role="alert" className="text-red-700">{fieldErrors.end}</span>}
             </label>
-            <p>
+            <p className="app-muted sm:col-span-2">
               Chọn bắt đầu từ phút kế tiếp, thời lượng ít nhất 30 phút. Giờ nhập
               theo UTC+7 (Việt Nam); lịch tương lai không giữ occupancy hiện
               tại.
             </p>
             <button
               disabled={busy || !data.slots.length}
-              className="bg-teal-700 p-2 text-white rounded"
+              className="app-action sm:col-span-2"
             >
               Đặt chỗ
             </button>
@@ -208,13 +210,13 @@ export function ParkingPanel({ operator = false }: { operator?: boolean }) {
         ))}
       {data && (
         <>
-          <h2 className="text-xl font-bold">
+          <h2 className="app-subtitle">
             {operator ? "Các lượt đặt" : "Lượt đặt của tôi"}
           </h2>
           {data.reservations.length === 0 && <p>Chưa có lượt đặt.</p>}
           {
             <>
-              <label>
+              <label className="app-field">
                 Lọc trạng thái
                 <select
                   value={status}
@@ -223,7 +225,7 @@ export function ParkingPanel({ operator = false }: { operator?: boolean }) {
                     setPage(1);
                     setError("");
                   }}
-                  className="border p-2"
+                  className="app-control"
                 >
                   <option value="">Tất cả</option>
                   {["CONFIRMED", "CHECKED_IN", "COMPLETED", "CANCELLED"].map(
@@ -234,7 +236,7 @@ export function ParkingPanel({ operator = false }: { operator?: boolean }) {
                 </select>
               </label>
               <p>
-                Tổng: {data.total} lượt · Trang {page}
+                Tổng: {data.total} lượt - Trang {page}
               </p>
               <button
                 disabled={page === 1 || busy}
@@ -242,7 +244,7 @@ export function ParkingPanel({ operator = false }: { operator?: boolean }) {
               >
                 Trang trước
               </button>{" "}
-              ·{" "}
+              -{" "}
               <button
                 disabled={page * 10 >= data.total || busy}
                 onClick={() => setPage((p) => p + 1)}
@@ -252,14 +254,14 @@ export function ParkingPanel({ operator = false }: { operator?: boolean }) {
             </>
           }
           {data.reservations.map((r) => (
-            <article key={r.id} className="border rounded p-4 space-y-2">
+            <article key={r.id} className="app-surface space-y-2">
               <p>
-                {r.plate_number} · {r.hub_name}
-                {operator ? ` · ${r.owner_name}` : ""}
+                {r.plate_number} - {r.hub_name}
+                {operator ? ` - ${r.owner_name}` : ""}
               </p>
               <p>
                 {data.slots.find((s) => s.id === r.slot_id)?.code ?? r.slot_id}{" "}
-                · {r.status}
+                <StatusBadge status={r.status} />
               </p>
               <p>
                 {parkingDisplay(r.starts_at)} → {parkingDisplay(r.ends_at)}
@@ -267,7 +269,7 @@ export function ParkingPanel({ operator = false }: { operator?: boolean }) {
               {!operator && r.status === "CONFIRMED" && (
                 <button
                   disabled={busy}
-                  className="underline"
+                  className="app-secondary"
                   onClick={() =>
                     void mutate(`/api/parking-reservations/${r.id}/cancel`, {})
                   }
@@ -278,7 +280,7 @@ export function ParkingPanel({ operator = false }: { operator?: boolean }) {
               {operator && r.status === "CONFIRMED" && (
                 <button
                   disabled={busy}
-                  className="underline"
+                  className="app-secondary"
                   onClick={() =>
                     void mutate("/api/operator/parking-events", {
                       reservationId: r.id,
@@ -292,7 +294,7 @@ export function ParkingPanel({ operator = false }: { operator?: boolean }) {
               {operator && r.status === "CHECKED_IN" && (
                 <button
                   disabled={busy}
-                  className="underline"
+                  className="app-secondary"
                   onClick={() =>
                     void mutate("/api/operator/parking-events", {
                       reservationId: r.id,

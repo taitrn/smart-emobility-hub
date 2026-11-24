@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Metric, StatusBadge } from "@/components/ui/workspace";
 import type { ApiFailure, ApiSuccess } from "@/lib/http/response";
 import type { getOperatorOverview } from "./service";
 
@@ -85,16 +85,16 @@ export function OperatorDashboard() {
         {resources.map(resource => (
           <li
             key={resource.id}
-            className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 py-2"
+            className="flex flex-wrap items-center justify-between gap-2 border-t border-[#dce7df] py-2"
           >
             <span>
-              {resource.code} · {resource.status}
-              {resource.batteryPercent !== undefined && ` · Pin ${resource.batteryPercent}%`}
+              <b>{resource.code}</b>
+              {resource.batteryPercent !== undefined && ` - Pin ${resource.batteryPercent}%`} <StatusBadge status={resource.status} />
             </span>
             {(resource.status === "AVAILABLE" || resource.status === "OUT_OF_SERVICE") && (
-              <Button type="button" disabled={busy} onClick={() => void changeStatus(resource, kind)}>
+              <button className="app-secondary" type="button" disabled={busy} onClick={() => void changeStatus(resource, kind)}>
                 {resource.status === "AVAILABLE" ? "Giả lập lỗi" : "Khôi phục"}
-              </Button>
+              </button>
             )}
           </li>
         ))}
@@ -105,8 +105,8 @@ export function OperatorDashboard() {
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-2xl font-bold">Tài nguyên theo Hub</h2>
-        <Button type="button" disabled={loading || busy} onClick={async () => {
+        <h2 className="app-subtitle">Tài nguyên theo Hub</h2>
+        <button className="app-secondary" type="button" disabled={loading || busy} onClick={async () => {
           setBusy(true);
           setError("");
           try {
@@ -118,31 +118,49 @@ export function OperatorDashboard() {
           }
         }}>
           Tải lại
-        </Button>
+        </button>
       </div>
       {loading && <p role="status">Đang tải dữ liệu…</p>}
-      {error && <p role="alert" className="text-red-700">{error}</p>}
-      {notice && <p role="status">{notice}</p>}
+      {error && <p role="alert" className="app-error">{error}</p>}
+      {notice && <p role="status" className="app-notice">{notice}</p>}
       {overview?.hubs.length === 0 && <p>Chưa có Hub.</p>}
 
+      {overview && (
+        <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Metric label="Hub hoạt động">{overview.hubs.filter(hub => hub.status === "ACTIVE").length} / {overview.hubs.length}</Metric>
+          <Metric label="Xe khả dụng">{overview.hubs.reduce((sum, hub) => sum + hub.availableVehicleCount, 0)}</Metric>
+          <Metric label="Chỗ FLEET trống">{overview.hubs.reduce((sum, hub) => sum + hub.freeFleetSpaces, 0)}</Metric>
+          <Metric label="Cổng sạc khả dụng">{overview.hubs.reduce((sum, hub) => sum + hub.availableChargingPointCount, 0)}</Metric>
+        </dl>
+      )}
       {overview?.hubs.map(hub => (
-        <section key={hub.id} className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
-          <h3 className="text-lg font-semibold">{hub.code} · {hub.name} · {hub.status}</h3>
-          <p className="text-sm">
+        <section key={hub.id} className="app-surface space-y-4">
+          <h3 className="app-subtitle flex flex-wrap items-center gap-2">{hub.code} - {hub.name} <StatusBadge status={hub.status} /></h3>
+          <p className="app-muted">
             Xe khả dụng {hub.availableVehicleCount}/{hub.vehicles.length}
-            {" · "}FLEET trống {hub.freeFleetSpaces}
-            {" · "}Cổng khả dụng {hub.availableChargingPointCount}/{hub.chargingPoints.length}
+            {" - "}FLEET trống {hub.freeFleetSpaces}
+            {" - "}Cổng khả dụng {hub.availableChargingPointCount}/{hub.chargingPoints.length}
           </p>
-          <h4 className="font-medium">Xe dùng chung</h4>
-          {renderResources(hub.vehicles, "VEHICLE")}
-          <h4 className="font-medium">Chỗ đỗ</h4>
-          <ul className="grid gap-2 text-sm sm:grid-cols-2">
-            {hub.spaces.map(space => (
-              <li key={space.id}>{space.code} · {space.spaceKind} · {space.occupancyStatus}</li>
-            ))}
-          </ul>
-          <h4 className="font-medium">Cổng sạc</h4>
-          {renderResources(hub.chargingPoints, "CHARGING_POINT")}
+          <div className="grid gap-4 xl:grid-cols-3">
+            <section className="space-y-2">
+              <h4 className="app-subtitle">Xe dùng chung</h4>
+              {renderResources(hub.vehicles, "VEHICLE")}
+            </section>
+            <section className="space-y-2">
+              <h4 className="app-subtitle">Chỗ đỗ</h4>
+              <ul className="space-y-2 text-sm">
+                {hub.spaces.map(space => (
+                  <li key={space.id} className="flex flex-wrap items-center justify-between gap-2 border-t border-[#dce7df] py-2">
+                    <span>{space.code} - {space.spaceKind}</span><StatusBadge status={space.occupancyStatus} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+            <section className="space-y-2">
+              <h4 className="app-subtitle">Cổng sạc</h4>
+              {renderResources(hub.chargingPoints, "CHARGING_POINT")}
+            </section>
+          </div>
         </section>
       ))}
     </section>

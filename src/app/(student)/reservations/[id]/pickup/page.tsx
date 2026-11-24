@@ -69,22 +69,22 @@ export default function PickupPage() {
   }
 
   return (
-    <main className="mx-auto max-w-xl space-y-6 p-6">
+    <section className="max-w-3xl space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">
+        <h1 className="text-[26px] leading-8 font-bold text-[#153f34]">
           Nhận xe bằng mã đặt
         </h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="app-muted mt-2">
           Nhập mã nhận xe của lượt đặt còn hiệu lực.
         </p>
       </div>
 
       <form
         onSubmit={handlePickup}
-        className="space-y-4 rounded-xl border border-slate-200 bg-white p-6"
+        className="app-surface space-y-4"
       >
         <label
-          className="block text-sm font-medium text-slate-700"
+          className="app-field"
           htmlFor="pickup-code"
         >
           Mã nhận xe
@@ -126,11 +126,11 @@ export default function PickupPage() {
         )}
 
         {tripId && (
-          <p className="break-all text-sm text-slate-600">
-            <Link href="/trips" className="underline">Mở chuyến đi của tôi</Link>
+          <p className="app-muted">
+            <Link href="/trips" className="app-secondary">Mở chuyến đi của tôi</Link>
           </p>
         )}
       </form>
-    </main>
+    </section>
   );
 }

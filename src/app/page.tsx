@@ -1,30 +1,39 @@
 import Link from "next/link";
+import { ReservationIcon } from "@/features/reservations/reservation-ui";
+import { PageHeading } from "@/components/ui/workspace";
 
-const sections = [
-  { href: "/hubs", title: "Tra cứu Mobility Hub", detail: "Hub, xe, chỗ đỗ và cổng sạc · UC01" },
-  { href: "/reservations", title: "Đặt và nhận xe", detail: "Lượt đặt xe, mã nhận và thời hạn · UC02–03" },
-  { href: "/trips", title: "Chuyến đi và trả xe", detail: "Chuyến đang hoạt động và xác nhận trả · UC04" },
-  { href: "/parking", title: "Đặt chỗ đỗ cá nhân", detail: "Chọn Hub và khoảng thời gian · UC05" },
-  { href: "/operator", title: "Vận hành Hub", detail: "Thiết bị, sạc và sự cố · Operator" },
-  { href: "/operator/simulations", title: "What-if Simulation", detail: "Kịch bản trên snapshot, không đổi dữ liệu live · UC11" },
-];
+const actions = [
+  ["/reservations/new", "Đặt xe dùng chung", "Chọn xe điện còn trống tại Hub.", "bike"],
+  ["/parking", "Đỗ xe cá nhân", "Đặt chỗ theo thời gian bạn cần.", "parking"],
+  ["/charging", "Đăng ký sạc", "Gửi yêu cầu sạc tại Hub.", "charge"],
+  ["/trips", "Chuyến đi", "Xem chuyến đang diễn ra và trả xe.", "key"],
+] as const;
 
 export default function HomePage() {
   return (
-    <div className="space-y-10">
-      <section className="max-w-3xl space-y-4">
-        <p className="text-sm font-semibold uppercase tracking-wider text-teal-700">MVP · Nhóm L02_1</p>
-        <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl">Quản lý di chuyển và sạc xe tại Mobility Hub</h1>
-        <p className="max-w-2xl text-lg leading-8 text-slate-600">Khung ứng dụng chung cho nhóm phát triển: tra cứu Hub, đặt xe, nhận và trả xe, đặt chỗ đỗ và mô phỏng vận hành.</p>
-        <p className="text-sm leading-6 text-slate-500">Chọn một mục để xem phạm vi cần làm. Các use case sẽ được bổ sung theo Todo trong repo.</p>
+    <div className="space-y-6">
+      <PageHeading
+        title="Di chuyển trong khu đô thị ĐHQG-HCM"
+        description="Tra cứu Mobility Hub, đặt xe điện dùng chung, đặt chỗ đỗ và đăng ký sạc."
+      />
+      <section aria-label="Tra cứu Hub" className="app-surface flex flex-wrap items-center justify-between gap-4 bg-[#153f34] text-white">
+        <div className="space-y-1">
+          <h2 className="text-lg font-bold">Tìm Hub cho hành trình</h2>
+          <p className="text-sm text-[#dce7df]">Xem xe khả dụng, mức pin, chỗ đỗ và cổng sạc tại mỗi Hub.</p>
+        </div>
+        <Link href="/hubs" className="app-secondary"><ReservationIcon name="pin" /> Tra cứu Hub &amp; xe</Link>
       </section>
-      <section aria-label="Các chức năng" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {sections.map(({ href, title, detail }) => (
-          <Link key={href} href={href} className="rounded-xl border border-slate-200 bg-white p-6 transition hover:border-teal-500 hover:shadow-sm">
-            <h2 className="font-semibold">{title} <span aria-hidden="true">→</span></h2>
-            <p className="mt-3 text-sm leading-6 text-slate-600">{detail}</p>
-          </Link>
-        ))}
+      <section aria-labelledby="student-actions" className="space-y-3">
+        <h2 id="student-actions" className="app-subtitle">Dịch vụ sinh viên</h2>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {actions.map(([href, title, detail, icon]) => (
+            <Link key={href} href={href} className="app-surface space-y-3 hover:border-[#147a59] hover:bg-[#f4faf7]">
+              <span className="grid size-10 place-items-center rounded-lg bg-[#e6f2ec]"><ReservationIcon name={icon} /></span>
+              <h3 className="app-subtitle">{title}</h3>
+              <p className="app-muted">{detail}</p>
+            </Link>
+          ))}
+        </div>
       </section>
     </div>
   );
