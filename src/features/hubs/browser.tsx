@@ -1,25 +1,7 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
-import type { HubListView } from "@/lib/domain/views";
-import type { HubResources } from "./summary";
-type Detail = {
-  hub: HubResources["hubs"][number];
-  vehicles: {
-    id: string;
-    code: string;
-    vehicleType: string;
-    batteryPercent: number;
-    status: string;
-  }[];
-  spaces: {
-    id: string;
-    code: string;
-    spaceKind: string;
-    occupancyStatus: string;
-  }[];
-  chargingPoints: { id: string; code: string; status: string }[];
-  asOf: string;
-};
+import type { HubDetailView, HubListView } from "@/lib/domain/views";
 export function HubBrowser({ initialHubId = "" }: { initialHubId?: string }) {
   const [refresh, setRefresh] = useState(0),
     [detailRefresh] = useState(0);
@@ -28,7 +10,7 @@ export function HubBrowser({ initialHubId = "" }: { initialHubId?: string }) {
     [error, setError] = useState(""),
     [detailError, setDetailError] = useState(""),
     [loading, setLoading] = useState(true),
-    [detail, setDetail] = useState<Detail | null>(null),
+    [detail, setDetail] = useState<HubDetailView | null>(null),
     [selected, setSelected] = useState(initialHubId);
   useEffect(() => {
     const c = new AbortController();
@@ -165,7 +147,15 @@ export function HubBrowser({ initialHubId = "" }: { initialHubId?: string }) {
       )}
       {detail && (
         <article className="rounded border p-4 space-y-3">
-          <h2 className="text-xl font-bold">{detail.hub.name}</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xl font-bold">{detail.hub.name}</h2>
+            {detail.vehicles.some((vehicle) => vehicle.isBookable) && (
+              <Link href={`/reservations/new?hubId=${detail.hub.id}`}
+                className="rounded-lg bg-teal-800 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-900">
+                Đặt xe dùng chung
+              </Link>
+            )}
+          </div>
           <p>
             Tọa độ minh họa: {detail.hub.latitude}, {detail.hub.longitude}
           </p>

@@ -24,6 +24,7 @@ test("Hub counts separate filtered available vehicles, FLEET spaces and availabl
         vehicle_type: "E_BIKE",
         battery_percent: 75,
         status: "AVAILABLE",
+        is_bookable: true,
       },
       {
         id: "v2",
@@ -32,6 +33,7 @@ test("Hub counts separate filtered available vehicles, FLEET spaces and availabl
         vehicle_type: "E_BIKE",
         battery_percent: 90,
         status: "OUT_OF_SERVICE",
+        is_bookable: false,
       },
     ],
     spaces: [

@@ -8,7 +8,7 @@ ID UUID, thời gian ISO 8601, JSON camelCase. Mutation giữ field requestId th
 
 ## Route cần làm cùng feature
 
-Các path dưới đây có tiền tố `/api`. `GET /health` và `GET /me` đã hoạt động. Các entry nghiệp vụ có sẵn vẫn là stub sau validation/Auth; những route chưa có file sẽ được thêm cùng PR feature.
+Các path dưới đây có tiền tố `/api`. `GET /health` và `GET /me` đã hoạt động. Route chưa có service nghiệp vụ trả 501 sau validation/Auth.
 
 | Route | Chức năng |
 |---|---|
@@ -32,6 +32,15 @@ Các path dưới đây có tiền tố `/api`. `GET /health` và `GET /me` đã
 
 Login/logout đã dùng Supabase Auth; `/login` chuyển Student tới `/hubs`, Operator tới `/operator` khi session hợp lệ. Không thêm API Admin, receipt, device-command, tick, incident, draft, export hoặc history trong bản đầu. Input/output cụ thể của phần hỗ trợ chốt khi viết feature; không mở thêm endpoint chỉ để khớp toàn bộ class diagram.
 
+## Đặt và hủy xe dùng chung
+
+Áp migration 005 sau 004 trước khi triển khai API đặt xe và API Hub dùng view khả dụng mới.
+
+- `POST /api/vehicle-reservations` trả 201 khi tạo lượt. Cùng Student và requestId, gửi lại cùng vehicleId trả 200 với lượt cũ theo trạng thái hiện tại và hạn cũ. Dùng requestId đó cho xe khác trả 409 `REQUEST_ID_REUSED`.
+- `GET /api/me/reservations` trả `data.reservations` của chính Student, mới nhất trước. DTO lượt đặt có mã xe, tên Hub, ID và mã chỗ nhận. Chỉ có `pickupCode` khi lượt vẫn còn hiệu lực. Nếu đã nhận xe, `tripId` và `tripStatus` lấy từ chuyến tương ứng.
+- `POST /api/vehicle-reservations/{id}/cancel` trả 200 khi hủy thành công hoặc lượt của mình đã `CANCELLED`. Lượt ngoài quyền đọc trả 404. Lượt hết hạn trả 409 `RESERVATION_EXPIRED` và ghi nhận thu hồi. Lượt đã nhận xe trả 409 `INVALID_STATE`.
+- Hub list và detail đọc cùng view khả dụng. Chi tiết trả thêm `isBookable` để chọn xe. Lượt hết hạn được xem là hết hiệu lực ngay khi đọc và được ghi nhận khi có thao tác liên quan.
+
 ## Nhận và trả
 
 Kết quả thành công giữ `{command, trip}` theo DTO hiện có; command chỉ là kết quả giả lập của request, không cần bảng riêng. Thất bại trả lỗi và không thay đổi reservation/trip/tài nguyên. MVP không trả 202 hoặc poll ACK. Không cho Student tự chọn kết quả thành công của thiết bị; mô phỏng lỗi do cấu hình demo phía server/Operator điều khiển khi triển khai.
@@ -42,7 +51,7 @@ Giữ hubIds, demandMultiplier, failedChargingPoints, projectedArrivals, arrival
 
 ## Bổ sung parking
 
-Ba mutation parking kiểm tra session/role trước khi đọc body; chưa đăng nhập trả 401 dù JSON sai. Request ID hợp lệ được dùng để tương quan response sau bước Auth. POST đặt chỗ dùng requestId theo owner: cùng payload trả kết quả ban đầu, khác payload trả 409 REQUEST_ID_REUSED. Chỉ bổ sung retry cho đặt chỗ, không có receipt framework hoặc retry lookup API.
+Ba mutation parking kiểm tra session/role trước khi đọc body; chưa đăng nhập trả 401 dù JSON sai. Request ID hợp lệ được dùng để tương quan response sau bước Auth. POST đặt chỗ dùng requestId theo owner: cùng payload trả kết quả ban đầu, khác payload trả 409 REQUEST_ID_REUSED. Chưa có receipt framework hoặc retry lookup API.
 
 GET /parking-reservations hỗ trợ page (10 dòng/trang), status; chỉ trả lượt của chính Student hoặc toàn bộ cho Operator. Response bổ sung total, plate_number, owner_name và hub_name; không trả email Auth. Các trường snake_case của parking hiện giữ tương thích, còn chi tiết Hub đã đổi các khóa tài nguyên sang camelCase theo contract chung.
 
