@@ -1,34 +1,43 @@
 # 04 UI, demo và kiểm thử
 
-## Màn hình
+## Giao diện
 
-Dùng trang khung đã có: Hub, đăng nhập, lượt đặt, chuyến đi, parking, yêu cầu sạc và Operator/What-if. Màn Admin có thể giữ nhãn chưa hỗ trợ hoặc ẩn khỏi điều hướng; không bắt buộc triển khai riêng. Không cần đồ họa bản đồ, biểu đồ phức tạp hay giao diện điện thoại riêng.
+Trang chủ, Hub và các màn hình Student/Operator dùng chung sidebar, header, form và trạng thái. Sidebar hiển thị chức năng theo role. Ở màn chọn xe (`/reservations/new`), bấm bất kỳ ô nào trên hàng xe khả dụng hoặc dùng nút mã xe bằng bàn phím. `/reservations` hiển thị lượt đang giữ và lịch sử.
 
-Seed nền hiện có đúng 3 Hub (Metro, KTX, khu trường), 6 xe chung, 12 chỗ đỗ (9 FLEET, 3 PRIVATE), 3 cổng sạc (một cổng hỏng). Mỗi Hub có hai xe đang đỗ, một FLEET trống và một PRIVATE trống; pin xe là 75% hoặc 25%. Tọa độ là minh họa, chưa dùng đo khoảng cách thực tế. Hai Student và một Operator được tạo riêng trong Auth; xe cá nhân thêm theo owner thật khi làm UC05. Tình huống pin ≤20%/Hub đầy cần fixture riêng khi feature triển khai. Seed chỉ bổ sung dòng thiếu, chưa có script reset. Mật khẩu và chức năng reset không công khai.
+## Dữ liệu mẫu
 
-## Sạc và sự cố
+Seed sạch có 3 Hub (Ga Metro, Ký túc xá, Khu trường), 7 xe chung, 14 chỗ đỗ (10 FLEET, 4 PRIVATE) và 3 cổng sạc. Tài khoản demo và xe cá nhân `DEMO-01` tạo riêng theo [hướng dẫn quản trị](../AUTH_SETUP.md).
 
-Chia hai nhóm: ưu tiên nếu pin ≤20% hoặc thời gian đến giờ rời dự kiến từ 0 đến 60 phút; các yêu cầu còn lại thuộc nhóm thường. Nhóm ưu tiên xếp trước, FIFO theo thời điểm tạo trong mỗi nhóm. Hai ngưỡng là cấu hình demo tại `src/config/shared.ts`. Cổng hỏng không được cấp phát. Operator bấm xử lý hàng đợi, hoàn tất sạc hoặc khôi phục cổng; không cần mô phỏng nhiệt độ, công suất, pause/resume hoặc scheduler nền.
+| Dữ liệu | Kịch bản |
+|---|---|
+| `EV01`, pin 75% ở H01 | Đặt/hủy, nhận và trả xe vào chỗ FLEET trống |
+| `EV07`, xe máy điện pin 15%, đỗ ở `H01-S5` | Lọc loại xe/pin hoặc minh họa ưu tiên sạc vì pin thấp |
+| `H01-S6`, chỗ PRIVATE trống | Đặt chỗ cho xe cá nhân, thử trùng lịch hoặc mô phỏng vào/ra |
+| `CP01` hoạt động và `CP03` hỏng | Cấp cổng, hoàn tất sạc và minh họa sự cố |
 
-## What-if đơn giản
+Tọa độ chỉ để minh họa. Dữ liệu trên là trạng thái lúc seed. Các dòng mới đã được thử trên database tạm. Khi dùng project chung để demo, kiểm tra đã có EV07 và H01-S6, rồi kiểm tra trạng thái xe/chỗ/cổng trước khi chạy kịch bản.
 
-Cho phép kết hợp nhu cầu tăng, cổng sạc bị hỏng và số xe dự kiến đến một Hub. Dùng snapshot để nhận biết riêng Hub đã đầy và Hub có nhiều xe nhất; số xe dự kiến đến chỉ mô phỏng thay đổi thêm. Tính trên bản sao trạng thái hiện tại, không sửa dữ liệu vận hành.
+## Chuỗi demo ngắn
 
-Một cách ước lượng đủ dùng: trong khoảng thời gian đã chọn, nhu cầu dự kiến = ceil(nhu cầu mẫu × hệ số). Thiếu xe = max(0, nhu cầu dự kiến - xe khả dụng); thiếu cổng = max(0, yêu cầu sạc - cổng còn hoạt động); xe vượt sức chứa = max(0, xe dự kiến đến - chỗ FLEET trống). Hub đầy khi không còn chỗ FLEET trống; sau kịch bản, Hub đầy nếu xe dự kiến đến lớn hơn hoặc bằng chỗ trống (kể cả Hub đã đầy và không có xe mới). Xe hiện diện là xe đang đỗ tại Hub, không tính xe đang trong chuyến. Số xe hiện diện sau kịch bản = số xe đang đỗ + min(xe dự kiến đến, chỗ FLEET trống). Trong các Hub được chọn, đánh dấu mọi Hub có số xe hiện diện sau kịch bản lớn nhất khi con số này > 0; đây là so sánh đơn giản, không tự kết luận có bất thường. Khi số xe dự kiến đến lớn hơn 0, chọn một Hub đích trong danh sách Hub đang so sánh; xe dự kiến đến là giả định, không tự trừ số xe ở Hub khác. So sánh với baseline có hệ số 1, không thêm cổng lỗi và không thêm xe dự kiến đến. Nêu rõ đây là mô hình đơn giản, không phải dự báo giao thông chính xác. Nếu xét nhiều khoảng thời gian, dùng cùng đơn vị nhu cầu/giờ và quy đổi theo horizon.
+1. Tra cứu Hub rồi đăng nhập Student. Đặt `EV01`, hủy, đặt lại, nhập mã nhận và trả xe vào một chỗ FLEET trống.
+2. Đặt `H01-S6` cho xe cá nhân trong khung giờ phù hợp. Thử đặt trùng một lần. Khi tới khung giờ, dùng tài khoản Operator ghi nhận đến/rời.
+3. Khi `CP01` trống và hai xe cùng khả dụng ở H01, gửi yêu cầu sạc `EV01` trước, `EV07` sau, bỏ trống giờ rời dự kiến. Operator cấp cổng; `EV07` được cấp trước do pin ≤20%. Hoàn tất rồi cấp cho lượt còn lại.
+4. Trên dashboard, giả lập lỗi và khôi phục xe/cổng. Chạy What-if với nhiều xe đến hơn số chỗ FLEET trống và thêm một cổng lỗi. Đối chiếu số liệu trước/sau, xe vượt sức chứa và khuyến nghị.
 
-Thiếu xe thì gợi ý lấy từ Hub đang dư hoặc chuyển hướng người dùng; thiếu chỗ thì gợi ý Hub khác; thiếu cổng thì áp dụng ngưỡng pin ≤20% hoặc giờ rời trong 0–60 phút, FIFO trong cùng nhóm như mục Sạc và sự cố. Không chuyển quá số xe dư hoặc gợi ý cổng đang hỏng. Dùng bảng trước/sau và lý do bằng văn bản. Cùng snapshot/input cho cùng kết quả; seed chỉ cần dùng nếu thực sự thêm thành phần ngẫu nhiên, không bắt buộc sinh số ngẫu nhiên cho phức tạp.
+## Kết quả kiểm tra
 
-## Chuỗi demo
+Rà lại nhánh UI và dữ liệu mẫu ngày 25/11/2026.
 
-1. Xem Hub/xe/pin/chỗ/cổng; đăng nhập Student.
-2. Đặt xe; Student khác đặt cùng xe bị từ chối; thử hủy rồi đặt lại.
-3. Nhập mã nhận, bắt đầu chuyến và trả vào Hub có chỗ; thử mã sai hoặc Hub đầy.
-4. Đặt parking theo giờ; thử khoảng giờ sai/trùng; Operator mô phỏng đến/rời.
-5. Gửi hai yêu cầu sạc, thấy thứ tự ưu tiên và cấp cổng còn trống; mô phỏng hoàn tất.
-6. Operator bật cổng lỗi, xem dashboard; chạy What-if tăng nhu cầu/cổng lỗi, Hub đã đầy và xe tập trung tại một Hub; đọc bảng thay đổi và khuyến nghị. Xác nhận xe/chỗ thực tế không tự đổi.
+| Môi trường | Đã xác minh |
+|---|---|
+| Nhánh UI trên localhost | Mở các màn hình Student và Operator, kiểm tra điều hướng theo role, chọn xe bằng cách bấm ô pin hoặc nhấn Space trên nút mã xe. Chạy thử What-if qua UI. Lint, typecheck và 26 test Node đã qua. |
+| Production build local | Webpack build thành công trên Node 24. Smoke API qua 15/15 ca cho health, Hub và Auth khi chưa đăng nhập. Turbopack gặp lỗi khởi chạy tiến trình Node con trong môi trường chạy kiểm thử. |
+| PostgreSQL tạm (PGlite) | Áp 001–009, seed và 5 file test SQL cho Auth/RLS, đặt/hủy xe, trả xe và parking. Với `H01-S6`, thử đặt chỗ, từ chối trùng và ghi nhận vào/ra. `EV07` được cấp cổng trước yêu cầu thường. Chạy lại seed giữ trạng thái đang sạc. Hoàn tất yêu cầu và cấp lại cổng cho xe tiếp theo. |
+| Bản Vercel trước cập nhật UI | Đã thử tra cứu Hub, quyền Student/Operator, đặt/hủy và nhận/trả xe, từ chối mã nhận sai, hàng đợi sạc, giả lập lỗi và khôi phục xe/cổng, và What-if. |
 
-## Kiểm thử và báo cáo
+## Giới hạn
 
-Dùng 12 test case đã nộp làm tài liệu tham khảo, đánh dấu rõ ca chưa hỗ trợ vì scope giảm; không tự ghi pass toàn bộ. Ít nhất thử luồng thành công của từng phần, đặt trùng, mã sai/hết hạn, trả Hub đầy, parking trùng, cổng lỗi và request trái quyền. Test chức năng có thật, không tăng số lượng test cho đẹp.
-
-Một tính năng xong khi UI gọi API/service thật, thay đổi dữ liệu đúng, có thể demo lại từ seed và owner giải thích được. Các mục tiêu 500 users, uptime hoặc độ trễ trong báo cáo cũ chưa được chứng minh bằng demo thủ công. Final cần PDF tổng hợp, chuỗi màn hình hoạt động, slide/demo được tập trước và khai báo AI trung thực theo spec.
+- Nhận/trả xe và trạng thái sạc là mô phỏng. Hoàn tất phiên sạc giải phóng cổng, giữ nguyên mức pin. Form sạc hiện chọn xe dùng chung.
+- Parking cần Operator ghi nhận đến/rời. Bản demo chưa tự xử lý no-show hay xe chiếm chỗ quá giờ.
+- What-if tính trên snapshot với nhu cầu mẫu và chỉ đưa ra khuyến nghị. Hàng đợi ưu tiên pin thấp hoặc xe sắp rời trong 0–60 phút, theo FIFO trong mỗi nhóm.
+- Kiểm tra hiện tập trung vào luồng chức năng, quyền và giao dịch. Chưa đo tải đồng thời, độ trễ hay uptime.

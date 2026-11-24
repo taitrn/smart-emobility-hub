@@ -1,4 +1,5 @@
 "use client";
+import { PageHeading, StatusBadge } from "@/components/ui/workspace";
 
 import { useEffect, useState, type FormEvent } from "react";
 import type { ChargingSessionView, HubListView } from "@/lib/domain/views";
@@ -88,49 +89,49 @@ export function ChargingPanel() {
 
   return (
     <section className="space-y-5">
-      <h1 className="text-3xl font-bold">Yêu cầu sạc xe</h1>
-      {notice && <p role="status" className="rounded bg-teal-50 p-3 text-teal-800">{notice}</p>}
-      {error && <p role="alert" className="rounded bg-red-50 p-3 text-red-700">{error}</p>}
+      <PageHeading title="Đăng ký phiên sạc" description="Chọn Hub, xe và giờ rời dự kiến để gửi yêu cầu vào hàng đợi." />
+      {notice && <p role="status" className="app-notice">{notice}</p>}
+      {error && <p role="alert" className="app-error">{error}</p>}
 
       {hubs && (
-        <form onSubmit={submit} className="grid gap-3 rounded border bg-white p-4 md:grid-cols-2">
-          <label>
+        <form onSubmit={submit} className="app-surface grid gap-4 sm:grid-cols-2">
+          <label className="app-field">
             Hub
             <select required value={hubId} onChange={(event) => {
               setHubId(event.target.value);
               setVehicles([]);
-            }} className="block border p-2">
+            }} className="app-control">
               <option value="">Chọn Hub</option>
-              {hubs.hubs.map((hub) => <option key={hub.id} value={hub.id}>{hub.code} · {hub.name}</option>)}
+              {hubs.hubs.map((hub) => <option key={hub.id} value={hub.id}>{hub.code} - {hub.name}</option>)}
             </select>
           </label>
-          <label>
+          <label className="app-field">
             Xe dùng chung
-            <select required name="vehicleId" className="block border p-2" disabled={!vehicles.length}>
+            <select required name="vehicleId" className="app-control" disabled={!vehicles.length}>
               <option value="">Chọn xe</option>
               {vehicles.map((vehicle) => (
-                <option key={vehicle.id} value={vehicle.id}>{vehicle.code} · pin {vehicle.batteryPercent}%</option>
+                <option key={vehicle.id} value={vehicle.id}>{vehicle.code} - pin {vehicle.batteryPercent}%</option>
               ))}
             </select>
           </label>
-          <label>
+          <label className="app-field">
             Giờ rời dự kiến (UTC+7, tùy chọn)
-            <input name="departure" type="datetime-local" className="block border p-2" />
+            <input name="departure" type="datetime-local" className="app-control" />
           </label>
-          <button disabled={busy || !hubId || !vehicles.length} className="rounded bg-teal-700 px-4 py-2 text-white md:self-end">
+          <button disabled={busy || !hubId || !vehicles.length} className="app-action self-end">
             {busy ? "Đang gửi…" : "Gửi yêu cầu sạc"}
           </button>
         </form>
       )}
 
-      <h2 className="text-xl font-bold">Phiên sạc của tôi</h2>
+      <h2 className="app-subtitle">Phiên sạc của tôi</h2>
       {sessions.length === 0 && <p>Chưa có phiên sạc.</p>}
       <div className="grid gap-3 md:grid-cols-2">
         {sessions.map((session) => (
-          <article key={session.id} className="rounded border bg-white p-4">
-            <p className="font-bold">{session.vehicleCode} · {session.hubCode}</p>
-            <p>Trạng thái: {session.status}</p>
-            <p>Nhóm ưu tiên: {session.priority}</p>
+          <article key={session.id} className="app-surface space-y-2">
+            <p className="font-bold">{session.vehicleCode} - {session.hubCode}</p>
+            <p><StatusBadge status={session.status} /></p>
+            <p><StatusBadge status={session.priority} /></p>
             <p>Pin: {session.batteryPercent}%</p>
             {session.chargingPointCode && <p>Cổng: {session.chargingPointCode}</p>}
           </article>

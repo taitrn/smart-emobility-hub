@@ -1,26 +1,9 @@
-# 05 Thứ tự triển khai
+# 05 Bàn giao và demo
 
-Scaffold và nền Auth/data đã được kiểm tra local/production, có CI và Vercel. Các chức năng nghiệp vụ sẽ được triển khai theo thứ tự dưới đây.
+Các phần nghiệp vụ đã ghép trên `main`. Xem [checklist](../TEAM_CHECKLIST.md) để tìm module phụ trách và [điều kiện kiểm thử](04_UI_AND_DEMO.md) để biết phạm vi đã xác minh.
 
-## Thứ tự
+## Trước buổi demo
 
-1. Đã xong: Supabase Auth, role/RLS nền, Hub/xe/chỗ/cổng và seed. Thành viên cấu hình env rồi triển khai feature.
-2. Các bạn làm UI và logic thuần song song theo checklist. Thêm migration cần thiết cùng feature và trao đổi field dùng chung trước khi ghép.
-3. Ghép đặt → nhận → trả; sau đó parking, sạc, dashboard/sự cố và What-if. Sạc/What-if phải có trong demo nhưng giữ thuật toán đơn giản.
-4. Chạy manual test theo mục 04, sửa lỗi, kiểm tra bản Vercel sau ghép và tập demo. Không coi placeholder deploy được là MVP đã xong.
-
-## Chia việc
-
-[TEAM_CHECKLIST](../TEAM_CHECKLIST.md) là nơi duy nhất ghi người/file/Todo chi tiết, tránh duy trì nhiều bảng phân công khác nhau. Các nhánh feature đã được tạo; PR về main, theo [CONTRIBUTING](../CONTRIBUTING.md).
-
-## Điều kiện bàn giao
-
-- Clone/chạy được theo README; lint, typecheck, tests và build qua.
-- Tài khoản demo dùng được; dữ liệu của Student không đọc/ghi tùy ý bởi người khác.
-- Các luồng chính trong mục 04 chạy qua UI, có thông báo lỗi cơ bản.
-- Seed và hướng dẫn demo rõ; ghi riêng kết quả local và Vercel, không khẳng định cloud đã nối nếu chưa thử.
-- Chuẩn bị một PDF Final tổng hợp các phần nộp, chuỗi màn hình demo hoạt động, slide trình bày và khai báo AI/đóng góp trung thực.
-
-## Khi thiếu thời gian
-
-Bỏ làm đẹp, filter nâng cao, Admin CRUD, history/export, draft approval và engine simulation tổng quát trước. Không bỏ sạc/What-if hoặc tính đúng của đặt/nhận/trả chỉ để thêm nhiều màn hình. Không đặt thêm mục tiêu benchmark hay CI phức tạp.
+1. Kiểm tra phiên bản triển khai và cấu hình database đang trỏ tới project demo. Kiểm tra dữ liệu mẫu, tài khoản Student/Operator và xe cá nhân gắn với Student.
+2. Chạy các luồng ngắn ở mục 04. Với chuỗi đặt → nhận → trả, bảo đảm xe còn sẵn sàng và Hub trả còn chỗ FLEET trống.
+3. Ghi môi trường, kết quả và giới hạn khi dùng lại ảnh hoặc số liệu. Phần thiết kế mở rộng được đối chiếu tại [mục 06](06_SUBMISSION3_ALIGNMENT.md).

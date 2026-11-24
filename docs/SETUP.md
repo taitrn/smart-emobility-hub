@@ -10,9 +10,7 @@ Copy-Item .env.example .env.local
 npm run dev
 ```
 
-Mở http://localhost:3000. Không có env vẫn xem được trang public/health; trang riêng tư cần Supabase. Tài khoản và mật khẩu demo được chia sẻ riêng. Không chạy migration hoặc seed lại trên project chung khi chỉ muốn chạy ứng dụng.
-
-Nền Auth/data đã được kiểm tra trên local và [Vercel production](https://smart-emobility-hub.vercel.app): đăng nhập/đăng xuất, role Student/Operator, refresh session, đổi tài khoản trong cùng tab và redirect từ `/login`. UC01 đã đọc dữ liệu Hub thật; các use case đặt/nhận/trả và vận hành vẫn là stub.
+Mở <http://localhost:3000>. Trang chủ và `/api/health` chạy khi thiếu env. Tra cứu Hub, đăng nhập và các luồng nghiệp vụ dùng Supabase. Tài khoản demo được chia sẻ riêng trong nhóm. Dùng project chung đã cấu hình để chạy app.
 
 ## Kiểm tra local
 
@@ -30,13 +28,11 @@ $env:AUTH_CONFIGURED="1"
 npm run smoke
 ```
 
-Script không gửi session: health trả 200, input sai trả 400, API có quyền trả 401; Hub đã triển khai: trả 200 khi kết nối Supabase hoạt động; thiếu cấu hình hoặc DB lỗi trả 503. AUTH_CONFIGURED phải khớp cấu hình lúc build/chạy app; không dùng smoke để chấp nhận DB lỗi khi đã kỳ vọng kết nối. Thiếu env thì bỏ AUTH_CONFIGURED và API bảo vệ trả 503. Khi triển khai feature, cập nhật expectation tương ứng. Test hiện kiểm tra boundary/role; chưa chứng minh nghiệp vụ đặt/nhận/trả.
+Script chạy không có session. Khi đã cấu hình Supabase, kiểm tra health/Hub trả 200, input Hub sai trả 400 và API bảo vệ trả 401. Khi chạy app thiếu env, bỏ `AUTH_CONFIGURED` để smoke kiểm tra phản hồi 503 ở các route phụ thuộc cấu hình. Xem [demo và kiểm thử](implementation/04_UI_AND_DEMO.md) cho các ca đăng nhập và thao tác dữ liệu.
 
 ## Quản trị Supabase
 
-Project demo chung đã có schema nền và seed. [AUTH_SETUP](AUTH_SETUP.md) dành cho người quản trị khi dựng project mới hoặc chạy lại kiểm tra quyền. Migration 001 chỉ chạy một lần; seed chỉ bổ sung dòng thiếu, không reset dữ liệu vận hành.
-
-SQL và tài khoản demo không thay thế quyền RLS. Các bảng lượt đặt/chuyến/phiên sạc và transaction liên quan sẽ thêm cùng feature. Không dùng secret/service-role key trong API người dùng hoặc browser.
+Project demo dùng schema qua migration 001–009. Khi dựng project mới, làm theo [AUTH_SETUP](AUTH_SETUP.md) để áp schema, seed và tạo tài khoản. Seed chỉ bổ sung dòng thiếu. API người dùng và browser dùng publishable key cùng session để thực thi quyền theo RLS.
 
 ## Quản trị Vercel
 

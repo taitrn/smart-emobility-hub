@@ -1,4 +1,5 @@
 "use client";
+import { PageHeading } from "@/components/ui/workspace";
 
 import { useEffect, useState, type FormEvent } from "react";
 import type { HubListView, SimulationRunView } from "@/lib/domain/views";
@@ -64,17 +65,17 @@ export function SimulationPanel() {
   return (
     <section className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold">What-if Simulation</h1>
+        <PageHeading title="Cấu hình mô phỏng What-if" />
         <p>
           Chạy kịch bản trên snapshot; kết quả không thay đổi dữ liệu vận hành live.
         </p>
       </div>
 
-      {error && <p role="alert" className="rounded bg-red-50 p-3 text-red-700">{error}</p>}
+      {error && <p role="alert" className="app-error">{error}</p>}
       {!hubs && !error && <p role="status">Đang tải danh sách Hub…</p>}
 
       {hubs && (
-        <form onSubmit={run} className="grid gap-4 rounded border bg-white p-5 md:grid-cols-2">
+        <form onSubmit={run} className="app-surface grid gap-4 md:grid-cols-2">
           <fieldset className="space-y-2 md:col-span-2">
             <legend className="font-bold">Hub được chọn</legend>
             {hubs.hubs.map((hub) => (
@@ -90,57 +91,57 @@ export function SimulationPanel() {
                     );
                   }}
                 />
-                {hub.code} · {hub.name}
+                {hub.code} - {hub.name}
               </label>
             ))}
           </fieldset>
 
-          <label>
+          <label className="app-field">
             Hệ số nhu cầu
-            <input required name="demandMultiplier" type="number" min="0" max="5" step="0.1" defaultValue="1" className="block border p-2" />
+            <input required name="demandMultiplier" type="number" min="0" max="5" step="0.1" defaultValue="1" className="app-control" />
           </label>
-          <label>
+          <label className="app-field">
             Số cổng hỏng mô phỏng
-            <input required name="failedChargingPoints" type="number" min="0" step="1" defaultValue="0" className="block border p-2" />
+            <input required name="failedChargingPoints" type="number" min="0" step="1" defaultValue="0" className="app-control" />
           </label>
-          <label>
+          <label className="app-field">
             Xe dự kiến đến
-            <input required name="projectedArrivals" type="number" min="0" step="1" defaultValue="0" className="block border p-2" />
+            <input required name="projectedArrivals" type="number" min="0" step="1" defaultValue="0" className="app-control" />
           </label>
-          <label>
+          <label className="app-field">
             Hub đích
-            <select name="arrivalHubId" className="block border p-2" defaultValue="">
+            <select name="arrivalHubId" className="app-control" defaultValue="">
               <option value="">Chọn khi có xe đến</option>
               {hubs.hubs
                 .filter((hub) => selected.includes(hub.id))
                 .map((hub) => (
-                  <option key={hub.id} value={hub.id}>{hub.code} · {hub.name}</option>
+                  <option key={hub.id} value={hub.id}>{hub.code} - {hub.name}</option>
                 ))}
             </select>
           </label>
-          <label>
+          <label className="app-field">
             Khoảng mô phỏng (phút)
-            <select name="horizonMinutes" className="block border p-2" defaultValue="30">
+            <select name="horizonMinutes" className="app-control" defaultValue="30">
               {[5, 10, 15, 30, 60, 120].map((value) => (
                 <option key={value} value={value}>{value}</option>
               ))}
             </select>
           </label>
-          <label>
+          <label className="app-field">
             Seed
-            <input required name="seed" type="number" min="0" max="4294967295" step="1" defaultValue="42" className="block border p-2" />
+            <input required name="seed" type="number" min="0" max="4294967295" step="1" defaultValue="42" className="app-control" />
           </label>
 
-          <button disabled={busy || selected.length === 0} className="rounded bg-teal-700 px-4 py-2 text-white md:col-span-2">
+          <button disabled={busy || selected.length === 0} className="app-action md:col-span-2">
             {busy ? "Đang mô phỏng…" : "Chạy What-if"}
           </button>
         </form>
       )}
 
       {result && (
-        <div className="space-y-5">
+        <div className="app-surface space-y-4">
           <h2 className="text-xl font-bold">Kết quả kịch bản</h2>
-          <p className="text-sm text-slate-600">
+          <p className="app-muted">
             Baseline: {new Date(result.baselineAsOf).toLocaleString("vi-VN")}
           </p>
           <p className="text-sm">Nhu cầu mẫu: 4 lượt xe và 1 lượt sạc mỗi Hub mỗi giờ.</p>
@@ -153,8 +154,8 @@ export function SimulationPanel() {
             {result.hubMetrics.map((metric) => {
               const hub = hubs?.hubs.find((item) => item.id === metric.hubId);
               return (
-                <article key={metric.hubId} className="space-y-1 rounded border bg-white p-4">
-                  <h3 className="font-bold">{hub?.code} · {hub?.name}</h3>
+                <article key={metric.hubId} className="app-surface space-y-1 text-sm">
+                  <h3 className="font-bold">{hub?.code} - {hub?.name}</h3>
                   <p>Hub đầy: {metric.isFleetFull ? "Có" : "Không"}</p>
                   <p>Xe hiện diện: {metric.parkedBefore} → {metric.parkedVehicleCount}</p>
                   <p>Chỗ FLEET trống: {metric.spacesBefore} → {metric.spacesAfter}</p>
@@ -175,17 +176,17 @@ export function SimulationPanel() {
             <h3 className="text-lg font-bold">Khuyến nghị</h3>
             {result.recommendations.length === 0 && <p>Không phát hiện thiếu xe, chỗ hoặc cổng trong kịch bản.</p>}
             {result.recommendations.map((recommendation) => (
-              <article key={recommendation.key} className="rounded border-l-4 border-amber-500 bg-white p-3">
+              <article key={recommendation.key} className="app-surface border-l-4 border-l-[#147a59] space-y-2">
                 <p className="font-bold">{recommendation.kind}</p>
                 <p>{recommendation.reason}</p>
                 {recommendation.destinationHubId && (
                   <p>
                     {recommendation.sourceHubId && `${hubs?.hubs.find(hub => hub.id === recommendation.sourceHubId)?.code ?? ""} → `}
                     {hubs?.hubs.find(hub => hub.id === recommendation.destinationHubId)?.code}
-                    {recommendation.vehicleCount !== undefined && ` · ${recommendation.vehicleCount} xe`}
+                    {recommendation.vehicleCount !== undefined && ` - ${recommendation.vehicleCount} xe`}
                   </p>
                 )}
-                <ul className="list-disc pl-5 text-sm text-slate-600">
+                <ul className="list-disc pl-5 app-muted">
                   {recommendation.assumptions.map((assumption) => (
                     <li key={assumption}>{assumption}</li>
                   ))}

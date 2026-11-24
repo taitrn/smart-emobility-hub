@@ -55,7 +55,7 @@ function HubChooser() {
                     <div>
                       <h2 className="font-bold text-[#153f34]">{hub.name}</h2>
                       <p className="text-sm text-[#546a60]">
-                        {hub.code} · {hub.status === "MAINTENANCE" ? "Đang bảo trì" : `${hub.availableVehicleCount} xe sẵn sàng`}
+                        {hub.code} - {hub.status === "MAINTENANCE" ? "Đang bảo trì" : `${hub.availableVehicleCount} xe sẵn sàng`}
                       </p>
                     </div>
                   </div>
@@ -182,7 +182,7 @@ function VehiclePicker({ hubId }: { hubId: string }) {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="text-base font-bold text-[#153f34]">{data.hub.name}</h2>
-              <p className="text-[13px]/5 text-[#546a60]">{data.hub.code} · {data.hub.status === "ACTIVE" ? "Đang hoạt động" : "Đang bảo trì"}</p>
+              <p className="text-[13px]/5 text-[#546a60]">{data.hub.code} - {data.hub.status === "ACTIVE" ? "Đang hoạt động" : "Đang bảo trì"}</p>
             </div>
             <Link href="/reservations/new" className={secondaryAction}>Đổi Hub</Link>
           </div>
@@ -220,11 +220,13 @@ function VehiclePicker({ hubId }: { hubId: string }) {
                     const isSelected = selected?.id === vehicle.id;
                     const cell = isSelected ? "border-y border-[#147a59] bg-[#f4faf7]" : "border-b border-[#dce7df]";
                     return (
-                      <tr key={vehicle.id}>
+                      <tr key={vehicle.id}
+                        className={vehicle.isBookable ? "cursor-pointer hover:[&>td]:bg-[#f4faf7]" : undefined}
+                        onClick={vehicle.isBookable ? () => chooseVehicle(vehicle.id) : undefined}>
                         <td className={`px-3 py-3 ${cell} ${isSelected ? "rounded-l-lg border-l" : ""}`}>
                           {vehicle.isBookable ? <button type="button" className="font-semibold underline-offset-4 hover:underline"
-                            aria-label={`Chọn xe ${vehicle.code}`} aria-pressed={isSelected}
-                            onClick={() => chooseVehicle(vehicle.id)}>{vehicle.code}</button> : <span className="font-semibold">{vehicle.code}</span>}
+                            aria-label={`Chọn xe ${vehicle.code}`} aria-pressed={isSelected}>
+                            {vehicle.code}</button> : <span className="font-semibold">{vehicle.code}</span>}
                         </td>
                         <td className={`px-3 py-3 ${cell}`}>{vehicleTypes[vehicle.vehicleType] ?? vehicle.vehicleType}</td>
                         <td className={`px-3 py-3 font-semibold tabular-nums ${cell}`}>{vehicle.batteryPercent}%</td>

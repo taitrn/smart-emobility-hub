@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { Card } from "@/components/ui/card";
+export { PageHeading as ReservationHeading } from "@/components/ui/workspace";
 
 const icons = {
   bike: [20, 20],
@@ -31,24 +32,15 @@ export function ReservationIcon({ name }: { name: keyof typeof icons }) {
 }
 
 export const primaryAction =
-  "inline-flex min-h-11 items-center justify-center rounded-lg bg-[#147a59] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0f6348] disabled:cursor-not-allowed disabled:opacity-50";
+  "app-action";
 export const secondaryAction =
-  "inline-flex min-h-11 items-center justify-center rounded-lg border border-[#c5d3cb] bg-white px-4 py-2.5 text-sm font-semibold text-[#153f34] hover:bg-[#f4faf7] disabled:cursor-not-allowed disabled:opacity-50";
+  "app-secondary min-h-11 px-4";
 export const dangerAction =
   "inline-flex min-h-11 items-center justify-center rounded-lg border border-[#e7c2c2] bg-white px-4 py-2.5 text-sm font-semibold text-[#a12d2d] hover:bg-[#fbeaea] disabled:cursor-not-allowed disabled:opacity-50";
 export const reservationGrid = "grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start";
 
 export function ReservationCard({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <Card className={`border-[#dce7df]! p-5! ${className}`}>{children}</Card>;
-}
-
-export function ReservationHeading({ title, description }: { title: string; description?: string }) {
-  return (
-    <div className="space-y-1.5">
-      <h1 className="text-[26px] leading-8 font-bold text-[#153f34]">{title}</h1>
-      {description && <p className="text-sm/6 text-[#546a60]">{description}</p>}
-    </div>
-  );
 }
 
 export function SummaryRow({ label, children }: { label: string; children: ReactNode }) {

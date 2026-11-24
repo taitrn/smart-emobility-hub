@@ -95,7 +95,7 @@ function HoldDetails({ reservation, remaining, justPlaced, onCancel }: {
         <ReservationCard>
           <dl>
             <SummaryRow label="Mã đặt xe"><span title={reservation.id}>{reservation.id.slice(0, 8).toUpperCase()}</span></SummaryRow>
-            <SummaryRow label="Xe">{reservation.vehicleCode} · Ô đỗ {reservation.pickupSlotCode}</SummaryRow>
+            <SummaryRow label="Xe">{reservation.vehicleCode} - Ô đỗ {reservation.pickupSlotCode}</SummaryRow>
             <SummaryRow label="Hub">{reservation.hubName}</SummaryRow>
             <SummaryRow label="Giữ đến">{dateTime.format(new Date(reservation.expiresAt))}</SummaryRow>
           </dl>
@@ -219,7 +219,7 @@ export function MyVehicleReservations({ placedId }: { placedId?: string }) {
             {previous.map((reservation) => (
               <li key={reservation.id} className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 py-3 text-sm">
                 <div>
-                  <p className="font-semibold text-[#153f34]">{reservation.vehicleCode} · {reservation.hubName}</p>
+                  <p className="font-semibold text-[#153f34]">{reservation.vehicleCode} - {reservation.hubName}</p>
                   <p className="mt-1 text-[13px] text-[#546a60]">{dateTime.format(new Date(reservation.confirmedAt))}</p>
                 </div>
                 <span className="rounded-full bg-[#eef3ef] px-3 py-1 text-xs font-semibold text-[#546a60]">{displayStatus(reservation)}</span>

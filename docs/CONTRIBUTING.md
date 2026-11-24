@@ -1,45 +1,21 @@
-# Cách làm việc
+# Đóng góp
 
-Mở [TEAM_CHECKLIST](TEAM_CHECKLIST.md), chọn phần được giao rồi đọc TODO trong file. Khi cần chạm file chung hoặc phần của bạn khác, ghi rõ lý do và ảnh hưởng trong PR, giữ phần không liên quan.
-
-## Nhánh và PR
-
-Các nhánh theo bảng dưới đây đã được tạo từ main. Lấy đúng nhánh phần việc của mình (ví dụ UC02):
+Tạo nhánh từ `main` mới nhất và mở PR về `main`. [Checklist của nhóm](TEAM_CHECKLIST.md) dẫn tới các module đã ghép.
 
 ```sh
-git fetch origin
-git switch --track origin/feat/uc02-reservation
+git switch main
+git pull --ff-only
+git switch -c fix/ten-thay-doi
 ```
 
-Nếu nhánh đã có ở local, dùng `git switch feat/uc02-reservation`. Làm việc trên nhánh riêng, push nhánh và mở PR về `main`. Khi bắt đầu phần việc mới chưa có nhánh, tạo `feat/<ten-phan-viec>` từ `main` mới nhất.
+Mỗi PR tập trung vào một thay đổi. Mô tả hành vi, cách kiểm tra và ảnh hưởng tới API hoặc migration nếu có.
 
-Auth/data đã có trên `main`; không cần tạo lại nhánh Auth.
+## Hợp đồng dùng chung
 
-Tên nhánh theo phần việc:
-
-| Phần việc | Người phụ trách | Nhánh |
-|---|---|---|
-| UC01: Hub | Tài | `feat/uc01-hubs` |
-| UC02/07: đặt và hủy xe | Tiến | `feat/uc02-reservation` |
-| UC03: nhận xe | Toàn | `feat/uc03-pickup` |
-| UC04: trả xe | Ân | `feat/uc04-return` |
-| UC05: parking | Tài tổng hợp | `feat/uc05-parking` |
-| UC11: What-if | Việt Anh | `feat/uc11-simulation` |
-| Sạc | Việt Anh + Tài* | `feat/charging` |
-| Dashboard Operator | Ân + Toàn* | `feat/operator-dashboard` |
-
-\* Phân công đề xuất, chờ các bạn xác nhận.
-
-Một PR theo một phần việc. Mô tả ngắn: hành vi đã làm, file/schema thay đổi, cách kiểm tra, dependency và phần chưa làm. Dùng commit rõ nghĩa như `feat: implement vehicle reservation` hoặc `fix: reject overlapping parking intervals`.
-
-## Giữ hợp đồng chung
-
-- Quy tắc dùng chung ở `src/config/shared.ts`; không tự đặt một hạn giữ xe/step simulation khác trong feature. Server/DB kiểm tra thời gian; không thêm scheduler nền.
-- DTO/trạng thái ở `src/lib/domain`; request boundary dùng Zod; API dùng cùng envelope `ok/data/error/requestId`.
-- Không tạo actor demo trong guard để bỏ qua Auth. User/role lấy từ server và kiểm tra cả trong RPC nhạy cảm.
-- Thay `throw notImplemented(...)` bằng nghiệp vụ thật khi nhận module; không đổi thành `return []` hoặc `ok:true` để làm smoke xanh.
-- Migration và transaction/RPC cần thiết đi cùng PR feature, không dựng framework command/receipt. Không dùng biến server hoặc file JSON ghi cục bộ làm database chung trên Vercel.
-- Không commit `.env.local`, key, mật khẩu, `node_modules`, build hay chatlog. Không reset seed tự động mỗi build.
+- DTO và Zod schema ở `src/lib/domain`, quy tắc ứng dụng ở `src/config/shared.ts`. API dùng chung envelope `ok/data/error/requestId`.
+- API kiểm tra session và role trước validation ở các route được bảo vệ. Quyền trên bản ghi được kiểm tra ở service/RPC và RLS.
+- Thay đổi schema bằng migration mới. Khi code phụ thuộc schema mới, kiểm tra migration trên database thử và áp đúng thứ tự trước khi triển khai.
+- Giữ `.env.local`, thông tin đăng nhập demo, ghi chú nội bộ, build và dependency ngoài Git. Seed chỉ bổ sung tài nguyên mẫu.
 
 ## Kiểm tra
 
@@ -50,6 +26,4 @@ npm test
 npm run build
 ```
 
-Test hiện kiểm tra boundary input và role, không chứng minh use case/RLS đã đúng. Thêm kiểm tra hành vi tương ứng khi triển khai RPC/service, giữ tests vừa đủ.
-
-Sau khi chạy app local có env, đặt `$env:AUTH_CONFIGURED="1"` trên PowerShell rồi chạy `npm run smoke`. Script chỉ chạy host local, không gửi session: health 200, input sai 400, API bảo vệ 401, Hub public 200 khi kết nối Supabase hoạt động. Không có env thì bỏ AUTH_CONFIGURED, API bảo vệ và Hub trả 503 khi thiếu cấu hình. AUTH_CONFIGURED phải khớp cấu hình build/app; 503 không được coi là pass khi kỳ vọng DB hoạt động. Khi triển khai feature, cập nhật expectation tương ứng. Xem [SETUP](SETUP.md).
+Xem [SETUP](SETUP.md) để chạy smoke local. Khi sửa luồng có ghi dữ liệu, kiểm tra thành công, sai quyền và xung đột trên database thử. [Các luồng demo](implementation/04_UI_AND_DEMO.md) mô tả cách thử và phạm vi kết quả.
