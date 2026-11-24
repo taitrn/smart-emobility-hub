@@ -52,4 +52,4 @@ npm run build
 
 Test hiện kiểm tra boundary input và role, không chứng minh use case/RLS đã đúng. Thêm kiểm tra hành vi tương ứng khi triển khai RPC/service, giữ tests vừa đủ.
 
-Sau khi chạy app local có env, đặt `$env:AUTH_CONFIGURED="1"` trên PowerShell rồi chạy `npm run smoke`. Script chỉ chạy host local, không gửi session: health 200, input sai 400, API bảo vệ 401, public feature stub 501. Không có env thì bỏ AUTH_CONFIGURED, API bảo vệ trả 503. Khi triển khai feature, cập nhật expectation tương ứng. Xem [SETUP](SETUP.md).
+Sau khi chạy app local có env, đặt `$env:AUTH_CONFIGURED="1"` trên PowerShell rồi chạy `npm run smoke`. Script chỉ chạy host local, không gửi session: health 200, input sai 400, API bảo vệ 401, Hub public 200 khi kết nối Supabase hoạt động. Không có env thì bỏ AUTH_CONFIGURED, API bảo vệ và Hub trả 503 khi thiếu cấu hình. AUTH_CONFIGURED phải khớp cấu hình build/app; 503 không được coi là pass khi kỳ vọng DB hoạt động. Khi triển khai feature, cập nhật expectation tương ứng. Xem [SETUP](SETUP.md).

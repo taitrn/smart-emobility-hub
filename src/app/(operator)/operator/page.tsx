@@ -9,6 +9,7 @@ export default function OperatorPage() {
       "Refresh sau thao tác; chưa cần tick hoặc worker nền.",
     ]} />
     <nav aria-label="Chức năng vận hành" className="flex flex-wrap gap-4 text-sm font-semibold text-teal-800">
+      <Link href="/operator/parking" className="hover:underline">Parking →</Link>
       <Link href="/operator/charging" className="hover:underline">Hàng đợi sạc →</Link>
       <Link href="/operator/simulations" className="hover:underline">What-if →</Link>
     </nav>

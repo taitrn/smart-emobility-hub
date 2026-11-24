@@ -39,3 +39,11 @@ Kết quả thành công giữ `{command, trip}` theo DTO hiện có; command ch
 ## What-if
 
 Giữ hubIds, demandMultiplier, failedChargingPoints, projectedArrivals, arrivalHubId, horizonMinutes và seed để không đổi form/schema khi các bạn bắt đầu. horizon là khoảng ước lượng; chưa cần engine chạy theo từng bước thời gian. projectedArrivals là số xe dự kiến đến; khi lớn hơn 0, arrivalHubId bắt buộc và phải thuộc hubIds. So sánh số xe đến với chỗ FLEET trống tại Hub đó để phát hiện xe vượt sức chứa. Kết quả mỗi Hub có `isFleetFull`, `parkedVehicleCount` và `hasMostParkedVehicles` để phân biệt Hub đầy với Hub có nhiều xe nhất trong các Hub được chọn. Trả số xe/chỗ/cổng thiếu và gợi ý theo quy tắc được mô tả tại mục 04. Không yêu cầu lưu run hoặc API chạy lại từ lịch sử.
+
+## Bổ sung parking
+
+Ba mutation parking kiểm tra session/role trước khi đọc body; chưa đăng nhập trả 401 dù JSON sai. Request ID hợp lệ được dùng để tương quan response sau bước Auth. POST đặt chỗ dùng requestId theo owner: cùng payload trả kết quả ban đầu, khác payload trả 409 REQUEST_ID_REUSED. Chỉ bổ sung retry cho đặt chỗ, không có receipt framework hoặc retry lookup API.
+
+GET /parking-reservations hỗ trợ page (10 dòng/trang), status; chỉ trả lượt của chính Student hoặc toàn bộ cho Operator. Response bổ sung total, plate_number, owner_name và hub_name; không trả email Auth. Các trường snake_case của parking hiện giữ tương thích, còn chi tiết Hub đã đổi các khóa tài nguyên sang camelCase theo contract chung.
+
+Parking cần migration 004 sau 002/003. Giờ form và hiển thị theo múi giờ UTC+7 trong SHARED_CONFIG. Không tự chuyển xe ra khỏi chỗ khi hết lịch; Operator vẫn xác nhận DEPARTED. No-show tự động tiếp tục ngoài MVP.

@@ -14,7 +14,7 @@ Tài liệu này mô tả phạm vi và kế hoạch triển khai MVP. Các ch�
 
 ## Hiện trạng
 
-Nền Auth/data đã chạy và được kiểm tra local/production. Các bảng tài nguyên có migration và seed; các bảng nghiệp vụ, UC01–05/07/11, sạc và dashboard vẫn chưa triển khai. Khi nhận việc, đọc SETUP và checklist; không cần dựng lại project cloud.
+Nền Auth/data đã chạy và được kiểm tra local/production. Các bảng tài nguyên có migration và seed (001), parking có migration 002–004. UC01 (tra cứu Hub) và UC05 (đặt chỗ đỗ PRIVATE, Operator mô phỏng đến/rời) đã triển khai và chạy trên production; UC02/03/04/07/11, sạc và dashboard vẫn chưa triển khai. Khi nhận việc, đọc SETUP và checklist; không cần dựng lại project cloud.
 
 ## Quy mô
 

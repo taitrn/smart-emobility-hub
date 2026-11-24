@@ -8,8 +8,14 @@ Trong Supabase của nhóm, mở SQL Editor → New query. Lần lượt chạy:
 
 1. `supabase/migrations/001_auth_and_resources.sql` (chạy một lần trên project mới).
 2. `supabase/seed.sql` (có thể chạy lại, không ghi đè dữ liệu đang có).
+3. `supabase/migrations/002_parking.sql`: chỉ áp một lần sau khi UC05 được review. Project chung đã có 001 nên không chạy lại 001.
+4. `supabase/migrations/003_revoke_rls_auto_enable.sql`: ghi nhận thu hồi quyền function event trigger. Trên project chung đã chạy thủ công; lệnh có thể áp lại và bỏ qua khi function chưa tồn tại. Giữ nguyên function/trigger nếu có.
 
-Migration tạo profile và năm bảng tài nguyên, RLS và grants tường minh. Các bảng lượt đặt/chuyến/sạc chưa tạo; chúng đi cùng feature. Không chạy migration vào database khác đang có dữ liệu mà chưa kiểm tra. Nếu báo lỗi, dừng và ghi lại thông báo; không tắt RLS để xử lý.
+Chạy `supabase/tests/parking.sql` trên database thử sau migration; không chạy bộ fixture này trên project chung. Sau khi duyệt 002, quản trị thêm xe cá nhân mẫu với UUID Student thật theo mục 2, rồi thử /parking và /operator/parking. Phần revoke đã được người dùng xác nhận qua SQL Editor; không đồng nghĩa 002 đã được áp.
+
+Migration tạo profile và năm bảng tài nguyên, RLS và grants tường minh. Migration 002 bổ sung lượt đặt parking; các bảng đặt xe/chuyến/sạc chưa tạo; chúng đi cùng feature. Không chạy migration vào database khác đang có dữ liệu mà chưa kiểm tra. Nếu báo lỗi, dừng và ghi lại thông báo; không tắt RLS để xử lý.
+
+Khi cập nhật feature parking đã có 002/003, chỉ review và áp `supabase/migrations/004_parking_review_fixes.sql` một lần. Migration giữ lượt đặt cũ, thêm retry theo request ID và API danh sách có giới hạn. Chạy `supabase/tests/parking_review.sql` ở database test đã seed tài nguyên; không chạy fixtures trên project chung. Không rerun 001/002/004 nếu đã áp.
 
 ## 2. Tạo tài khoản demo
 
@@ -57,3 +63,5 @@ Supabase Authentication → URL Configuration: Site URL là URL Vercel của nh�
 ## Component UI
 
 `src/components/ui` có Button, Input và Card dùng Tailwind, được dùng ở login. Đây là component nền của repo, chưa cài shadcn CLI/registry. Có thể bổ sung shadcn khi một feature cần component tương tác; tránh ghi đè các Supabase client đang dùng.
+
+Thứ tự deploy phiên fix: áp 004 thành công trước, sau đó mới merge/deploy code mới, rồi kiểm thử end-to-end. Không để code mới gọi parking_list khi database chưa có hàm này.

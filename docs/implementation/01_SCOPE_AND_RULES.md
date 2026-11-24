@@ -23,7 +23,7 @@ Dashboard và sạc là phần hỗ trợ cần demo, không được bỏ chỉ
 3. Chỉ chủ lượt đặt/chuyến được nhận, hủy hoặc trả. Không tin user/role gửi trong body.
 4. Mô phỏng thiết bị trả kết quả ngay trong request. Thành công mới đổi trạng thái; lỗi giữ nguyên dữ liệu. Chưa hỗ trợ trạng thái chờ đối soát hoặc offline.
 5. Trả xe vào FLEET còn trống. PRIVATE dành cho lịch xe cá nhân; đặt lịch tương lai không làm chỗ đang trống thành đang có xe.
-6. Parking có end > start, tối thiểu 30 phút và start không trong quá khứ. Chặn overlap trên cùng chỗ và cùng xe; lịch liền nhau được phép. Giờ do server kiểm tra.
+6. Parking có end > start, tối thiểu 30 phút và start không trong quá khứ. Chặn overlap trên cùng chỗ và cùng xe; lịch liền nhau được phép. Giờ do server kiểm tra. Giới hạn demo: tối đa 24 giờ/lượt và bắt đầu trong 30 ngày tới.
 7. Xe/cổng lỗi không được cấp phát. Cổng chỉ phục vụ một phiên; nhóm ưu tiên gồm xe pin ≤20% hoặc rời trong 0–60 phút; nhóm này xếp trước nhóm còn lại, FIFO theo thời điểm yêu cầu trong mỗi nhóm. Ngưỡng là cấu hình demo.
 8. What-if tính trên bản sao dữ liệu. Kết quả là khuyến nghị để Operator xem, không tự sửa xe, chỗ hoặc lịch sạc thật.
 
