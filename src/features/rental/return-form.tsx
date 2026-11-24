@@ -58,7 +58,7 @@ export function ReturnForm({ tripId, hubs }: { tripId: string; hubs: ReturnHub[]
           setError("");
         }} className="rounded-lg border border-slate-300 p-2">
           <option value="">Chọn Hub</option>
-          {hubs.map(hub => <option key={hub.id} value={hub.id}>
+          {hubs.filter(hub => hub.status === "ACTIVE").map(hub => <option key={hub.id} value={hub.id}>
             {hub.code} · {hub.name} ({hub.slots.length ? `${hub.slots.length} chỗ trống` : "đầy"})
           </option>)}
         </select>

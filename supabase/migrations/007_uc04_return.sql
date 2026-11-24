@@ -1,41 +1,5 @@
--- UC04: Tạo bảng lưu chuyến đi, bảng mô phỏng lỗi khóa và hàm xử lý trả xe.
--- public.trips lưu chuyến đi và thông tin trả xe.
--- app_private.return_lock_failures lưu slot_id của các chỗ đỗ có lỗi khóa mô phỏng.
--- public.return_fleet_vehicle(p_trip_id, p_hub_id, p_slot_id) kiểm tra chủ
--- chuyến, trạng thái ACTIVE và chỗ FLEET còn trống tại Hub đã chọn.
--- Khi khóa mô phỏng thành công, hàm cập nhật trong cùng giao dịch:
--- public.trips → COMPLETED, public.shared_vehicles → AVAILABLE,
--- public.parking_spaces → OCCUPIED.
-
+-- Requires the trips table from UC02.
 begin;
--- Shared with UC03. Add the reservation FK when UC02's table is integrated.
-create table public.trips (
-  id uuid primary key default gen_random_uuid(),
-  owner_id uuid not null references public.app_users(id),
-  vehicle_id uuid not null references public.shared_vehicles(id),
-  reservation_id uuid not null unique,
-  status text not null default 'ACTIVE',
-  started_at timestamptz not null default now(),
-  ended_at timestamptz,
-  return_hub_id uuid references public.mobility_hubs(id),
-  return_slot_id uuid references public.parking_spaces(id),
-  check (
-    (status = 'ACTIVE' and ended_at is null and return_hub_id is null and return_slot_id is null)
-    or
-    (status = 'COMPLETED' and ended_at is not null and ended_at >= started_at
-      and return_hub_id is not null and return_slot_id is not null)
-  )
-);
-create unique index trips_active_owner on public.trips(owner_id) where status = 'ACTIVE';
-create unique index trips_active_vehicle on public.trips(vehicle_id) where status = 'ACTIVE';
-create index trips_owner_history on public.trips(owner_id, started_at desc);
-
-alter table public.trips enable row level security;
-revoke all on public.trips from public, anon, authenticated;
-grant select on public.trips to authenticated;
-create policy trip_owner_read on public.trips for select to authenticated
-  using (owner_id = (select auth.uid()));
-
 -- A privileged demo fixture can mark a slot's simulated lock as failing.
 create table app_private.return_lock_failures (
   slot_id uuid primary key references public.parking_spaces(id) on delete cascade
@@ -55,6 +19,8 @@ begin
     raise exception using errcode = 'PT403', message = 'FORBIDDEN';
   end if;
 
+  perform app_private.lock_vehicle_student();
+
   select * into trip from public.trips
     where id = p_trip_id and owner_id = caller_id for update;
   if not found then
@@ -67,6 +33,12 @@ begin
   select * into vehicle from public.shared_vehicles where id = trip.vehicle_id for update;
   if vehicle.status <> 'IN_USE' or vehicle.slot_id is not null then
     raise exception using errcode = 'PT409', message = 'INVALID_STATE';
+  end if;
+
+  perform 1 from public.mobility_hubs
+    where id = p_hub_id and status = 'ACTIVE' for share;
+  if not found then
+    raise exception using errcode = 'PT409', message = 'HUB_MAINTENANCE';
   end if;
 
   select * into slot from public.parking_spaces where id = p_slot_id for update;

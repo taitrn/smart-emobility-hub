@@ -6,10 +6,10 @@ import { handleApi, readJson } from "@/lib/http/handler";
 
 export function POST(request: Request, route: RouteContext<"/api/trips/[id]/return">) {
   return handleApi(async context => {
-    const id = uuidSchema.parse((await route.params).id);
-    const input = await readJson(request, returnSchema);
-    context.requestId = input.requestId;
     const actor = await requireActor(["STUDENT"]);
+    const id = uuidSchema.parse((await route.params).id);
+    const input = await readJson(request, returnSchema, context);
+    context.requestId = input.requestId;
     return rentalResponse(await returnVehicle(actor, id, input), context.requestId);
   });
 }

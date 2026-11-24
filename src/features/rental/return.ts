@@ -48,6 +48,8 @@ export async function returnVehicle(actor: Actor, tripId: string, input: ReturnI
       case "PT404":
         throw new AppError("NOT_FOUND", "Không tìm thấy chuyến đi của bạn.", 404);
       case "PT409":
+        if (error.message === "HUB_MAINTENANCE")
+          throw new AppError("HUB_MAINTENANCE", "Hub đang bảo trì. Hãy chọn Hub khác.", 409);
         if (error.message === "SLOT_BUSY")
           throw new AppError("SLOT_BUSY", "Chỗ đỗ đã hết trống hoặc đang ngừng sử dụng. Hãy chọn lại.", 409);
         throw new AppError("INVALID_STATE", "Chuyến hoặc xe không còn ở trạng thái có thể trả.", 409);
@@ -72,6 +74,7 @@ export type ReturnHub = {
   id: string;
   code: string;
   name: string;
+  status: string;
   slots: { id: string; code: string }[];
 };
 
@@ -81,7 +84,7 @@ export async function loadTrips(actor: Actor) {
   const [trips, hubs, slots, vehicles] = await Promise.all([
     db.from("trips").select("id,vehicle_id,reservation_id,status,started_at,ended_at,return_hub_id,return_slot_id")
       .eq("owner_id", actor.id).order("status").order("started_at", { ascending: false }).limit(30),
-    db.from("mobility_hubs").select("id,code,name").order("code"),
+    db.from("mobility_hubs").select("id,code,name,status").order("code"),
     db.from("parking_spaces").select("id,hub_id,code").eq("enabled", true)
       .eq("space_kind", "FLEET").eq("occupancy_status", "FREE").order("code"),
     db.from("shared_vehicles").select("id,code,slot_id"),
