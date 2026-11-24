@@ -76,7 +76,7 @@ begin
   perform pg_catalog.pg_advisory_xact_lock(502606::bigint);
 
   if p_action='REQUEST' then
-    if actor_role distinct from 'STUDENT' then raise exception 'FORBIDDEN'; end if;
+    if actor_role is distinct from 'STUDENT' then raise exception 'FORBIDDEN'; end if;
     rid := nullif(p_payload->>'requestId','')::uuid;
     if rid is null then raise exception 'INVALID_INPUT'; end if;
 
@@ -166,7 +166,7 @@ begin
 
     return jsonb_build_object('id',session.id,'status',session.status);
   elsif p_action='PROCESS' then
-    if actor_role distinct from 'OPERATOR' then raise exception 'FORBIDDEN'; end if;
+    if actor_role is distinct from 'OPERATOR' then raise exception 'FORBIDDEN'; end if;
 
     for session in
       select s.*
@@ -175,6 +175,10 @@ begin
       order by s.priority='NORMAL',s.created_at,s.id
       for update of s
     loop
+      perform 1 from public.mobility_hubs
+      where id = session.hub_id and status = 'ACTIVE' for share;
+      if not found then continue; end if;
+
       select p.*
         into point
         from public.charging_points p
@@ -202,7 +206,7 @@ begin
 
     return jsonb_build_object('processed',processed);
   elsif p_action='COMPLETE' then
-    if actor_role distinct from 'OPERATOR' then raise exception 'FORBIDDEN'; end if;
+    if actor_role is distinct from 'OPERATOR' then raise exception 'FORBIDDEN'; end if;
     select * into session
       from public.charging_sessions
       where id=(p_payload->>'sessionId')::uuid

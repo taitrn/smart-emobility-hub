@@ -44,7 +44,7 @@ function chargingError(error: { code?: string; message?: string }): never {
   };
   const entry = messages[error.message ?? ""];
   if (entry) throw new AppError(error.message as import("../../lib/http/errors.ts").ErrorCode, entry[1], entry[0]);
-  throw new AppError("DATABASE_UNAVAILABLE", "Không thể xử lý phiên sạc. Kiểm tra migration 005.", 503, true);
+  throw new AppError("DATABASE_UNAVAILABLE", "Không thể xử lý phiên sạc. Kiểm tra migration sạc.", 503, true);
 }
 
 async function chargeRpc(action: string, payload: object) {
