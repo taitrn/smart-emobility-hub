@@ -17,6 +17,7 @@ export type SimulationSnapshot = {
 
 export type SimulationEngineResult = {
   hubMetrics: SimulationRunView["hubMetrics"];
+  charging: SimulationRunView["charging"];
   recommendations: SimulationRunView["recommendations"];
 };
 
@@ -49,8 +50,16 @@ export function runSimulationEngine(
     baselineAvailablePoints - input.failedChargingPoints,
   );
 
+  const baselineDemand = Math.ceil(4 * input.horizonMinutes / 60);
+  const demandBefore = selected.length * Math.ceil(input.horizonMinutes / 60);
+  const charging = {
+    before: baselineAvailablePoints,
+    after: scenarioAvailablePoints,
+    demandBefore,
+    demandAfter: Math.ceil(demandBefore * input.demandMultiplier),
+  };
+
   const metrics = selected.map((hub) => {
-    const baselineDemand = hub.availableVehicleCount;
     const scenarioDemand = Math.ceil(
       baselineDemand * input.demandMultiplier,
     );
@@ -77,6 +86,11 @@ export function runSimulationEngine(
 
     return {
       hubId: hub.id,
+      parkedBefore: hub.parkedVehicleCount,
+      spacesBefore: hub.freeFleetSpaces,
+      spacesAfter: Math.max(0, hub.freeFleetSpaces - projectedArrivals),
+      demandBefore: baselineDemand,
+      demandAfter: scenarioDemand,
       isFleetFull,
       parkedVehicleCount,
       hasMostParkedVehicles: false,
@@ -103,30 +117,41 @@ export function runSimulationEngine(
 
   const recommendations: SimulationRunView["recommendations"] = [];
 
+  const surplus = new Map(selected.map(hub => [
+    hub.id, Math.max(0, hub.availableVehicleCount - Math.ceil(baselineDemand * input.demandMultiplier)),
+  ]));
+  const remainingSpace = new Map(metrics.map(metric => [metric.hubId, metric.spacesAfter]));
+
   for (const metric of metrics) {
     if (metric.unmetDemand > 0) {
-      const surplus = [...metrics]
-        .filter((candidate) => candidate.parkedVehicleCount > 0)
-        .sort(
-          (a, b) =>
-            b.parkedVehicleCount -
-            a.parkedVehicleCount,
-        )[0];
-      recommendations.push({
-        key: `rebalance-${metric.hubId}`,
-        kind: "REBALANCE",
-        sourceHubId:
-          surplus && surplus.hubId !== metric.hubId
-            ? surplus.hubId
-            : undefined,
-        destinationHubId: metric.hubId,
-        vehicleCount: metric.unmetDemand,
-        reason: "Nhu cầu mô phỏng vượt xe khả dụng tại Hub.",
-        assumptions: [
-          "Ước lượng theo nhu cầu mẫu nhân hệ số.",
-          "Không tự điều chuyển xe live.",
-        ],
-      });
+      const source = [...surplus.entries()]
+        .filter(([id, count]) => id !== metric.hubId && count > 0)
+        .sort((a, b) => b[1] - a[1])[0];
+      const free = remainingSpace.get(metric.hubId) ?? 0;
+      const count = source ? Math.min(source[1], metric.unmetDemand, free) : 0;
+      if (source && count > 0) {
+        surplus.set(source[0], source[1] - count);
+        remainingSpace.set(metric.hubId, free - count);
+        recommendations.push({
+          key: `rebalance-${metric.hubId}`,
+          kind: "REBALANCE",
+          sourceHubId: source[0],
+          destinationHubId: metric.hubId,
+          vehicleCount: count,
+          reason: "Hub nguồn có xe dư và Hub đích còn chỗ nhận.",
+          assumptions: ["Dùng nhu cầu mẫu; không điều chuyển xe thật."],
+        });
+      } else {
+        recommendations.push({
+          key: `vehicle-shortage-${metric.hubId}`,
+          kind: "REDIRECT",
+          destinationHubId: source?.[0],
+          reason: source
+            ? "Hub thiếu xe không còn chỗ nhận thêm; hướng người dùng đến Hub có xe dư."
+            : "Không có Hub nào dư xe; cân nhắc dời thời điểm sử dụng.",
+          assumptions: ["Chỉ xét xe khả dụng còn dư sau khi tính nhu cầu tại Hub nguồn."],
+        });
+      }
     }
 
     if (metric.overflowCount > 0 || metric.isFleetFull) {
@@ -134,18 +159,24 @@ export function runSimulationEngine(
         .filter(
           (candidate) =>
             candidate.hubId !== metric.hubId &&
-            !candidate.isFleetFull,
+            (remainingSpace.get(candidate.hubId) ?? 0) > 0,
         )
         .sort(
           (a, b) =>
             b.parkedVehicleCount -
             a.parkedVehicleCount,
         )[0];
+      const redirected = alternative
+        ? Math.min(metric.overflowCount, remainingSpace.get(alternative.hubId) ?? 0)
+        : 0;
+      if (alternative && redirected) {
+        remainingSpace.set(alternative.hubId, (remainingSpace.get(alternative.hubId) ?? 0) - redirected);
+      }
       recommendations.push({
         key: `redirect-${metric.hubId}`,
         kind: "REDIRECT",
         destinationHubId: alternative?.hubId,
-        vehicleCount: metric.overflowCount || undefined,
+        vehicleCount: redirected || undefined,
         reason: alternative
           ? "Xe dự kiến đến có thể vượt sức chứa; chuyển hướng sang Hub còn chỗ."
           : "Hub không còn chỗ FLEET phù hợp trong danh sách đã chọn.",
@@ -157,12 +188,12 @@ export function runSimulationEngine(
     }
   }
 
-  if (input.failedChargingPoints > 0 || scenarioAvailablePoints < baselineAvailablePoints) {
+  if (input.failedChargingPoints > 0 || charging.demandAfter > charging.after) {
     recommendations.push({
       key: "charging-priority",
       kind: "CHARGING",
       reason:
-        "Cổng hỏng làm giảm sức chứa sạc; ưu tiên pin thấp và xe sắp rời.",
+        "Ưu tiên pin thấp và xe sắp rời khi sức chứa sạc giảm hoặc nhu cầu tăng.",
       assumptions: [
         "Ưu tiên pin <=20% hoặc rời trong 0-60 phút.",
         "FIFO trong cùng nhóm.",
@@ -171,5 +202,5 @@ export function runSimulationEngine(
     });
   }
 
-  return { hubMetrics: metrics, recommendations };
+  return { hubMetrics: metrics, charging, recommendations };
 }

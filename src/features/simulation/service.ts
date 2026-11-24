@@ -77,6 +77,7 @@ export async function runSimulation(_actor: Actor, _input: SimulationInput): Pro
     finishedAt: finishedAt.toISOString(),
     durationMs: finishedAt.getTime() - startedAt.getTime(),
     hubMetrics: result.hubMetrics,
+    charging: result.charging,
     recommendations: result.recommendations,
   };
 }

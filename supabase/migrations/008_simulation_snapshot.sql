@@ -31,14 +31,15 @@ begin
             select count(*)
             from public.shared_vehicles v
             where v.hub_id=h.id
-              and v.enabled=true
-              and v.status in ('AVAILABLE','RESERVED','WAITING_CHARGE','CHARGING')
+              and v.slot_id is not null
           ),
           'availableVehicleCount',(
             select count(*)
             from public.shared_vehicles v
             where v.hub_id=h.id
               and v.enabled=true
+              and h.status='ACTIVE'
+              and v.slot_id is not null
               and v.status='AVAILABLE'
           ),
           'freeFleetSpaces',case

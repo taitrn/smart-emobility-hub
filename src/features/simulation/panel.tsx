@@ -143,6 +143,12 @@ export function SimulationPanel() {
           <p className="text-sm text-slate-600">
             Baseline: {new Date(result.baselineAsOf).toLocaleString("vi-VN")}
           </p>
+          <p className="text-sm">Nhu cầu mẫu: 4 lượt xe và 1 lượt sạc mỗi Hub mỗi giờ.</p>
+          <p>
+            Cổng sạc khả dụng: {result.charging.before} → {result.charging.after}.
+            Nhu cầu sạc: {result.charging.demandBefore} → {result.charging.demandAfter}.
+            Thiếu sau mô phỏng: {Math.max(0, result.charging.demandAfter - result.charging.after)}.
+          </p>
           <div className="grid gap-4 md:grid-cols-2">
             {result.hubMetrics.map((metric) => {
               const hub = hubs?.hubs.find((item) => item.id === metric.hubId);
@@ -150,7 +156,9 @@ export function SimulationPanel() {
                 <article key={metric.hubId} className="space-y-1 rounded border bg-white p-4">
                   <h3 className="font-bold">{hub?.code} · {hub?.name}</h3>
                   <p>Hub đầy: {metric.isFleetFull ? "Có" : "Không"}</p>
-                  <p>Xe hiện diện sau kịch bản: {metric.parkedVehicleCount}</p>
+                  <p>Xe hiện diện: {metric.parkedBefore} → {metric.parkedVehicleCount}</p>
+                  <p>Chỗ FLEET trống: {metric.spacesBefore} → {metric.spacesAfter}</p>
+                  <p>Nhu cầu xe: {metric.demandBefore} → {metric.demandAfter}</p>
                   <p>Hub có nhiều xe nhất: {metric.hasMostParkedVehicles ? "Có" : "Không"}</p>
                   <p>Xe thiếu: {metric.unmetDemand}</p>
                   <p>Xe vượt sức chứa: {metric.overflowCount}</p>
@@ -170,6 +178,13 @@ export function SimulationPanel() {
               <article key={recommendation.key} className="rounded border-l-4 border-amber-500 bg-white p-3">
                 <p className="font-bold">{recommendation.kind}</p>
                 <p>{recommendation.reason}</p>
+                {recommendation.destinationHubId && (
+                  <p>
+                    {recommendation.sourceHubId && `${hubs?.hubs.find(hub => hub.id === recommendation.sourceHubId)?.code ?? ""} → `}
+                    {hubs?.hubs.find(hub => hub.id === recommendation.destinationHubId)?.code}
+                    {recommendation.vehicleCount !== undefined && ` · ${recommendation.vehicleCount} xe`}
+                  </p>
+                )}
                 <ul className="list-disc pl-5 text-sm text-slate-600">
                   {recommendation.assumptions.map((assumption) => (
                     <li key={assumption}>{assumption}</li>
